@@ -1,7 +1,7 @@
-using Backup;
-using Backup.ObjectDatabase;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.ObjectTypes;
+
+namespace Backup.ObjectDatabase;
 
 public static class GarbageCollector
 {

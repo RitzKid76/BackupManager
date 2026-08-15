@@ -6,8 +6,14 @@ namespace Backup;
 
 public static class BackupDatabase
 {
-    public static void Generate()
+    public static void Generate(string? backupName = null, bool force = false)
     {
+        if (
+            backupName is not null &&
+            !force &&
+            HasBackup(backupName)
+        ) throw new BackupAlreadyExistsException(backupName);
+
         List<string> paths = PathLoader.Load();
         Tree root = new("root");
 
@@ -21,7 +27,7 @@ public static class BackupDatabase
         if (root.References.Count == 0)
             return;
 
-        Database.WriteBackup(root, BackupName());
+        Database.WriteBackup(root, backupName ?? BackupName());
     }
 
     public static List<BackupEntry> GetBackups()
@@ -33,6 +39,17 @@ public static class BackupDatabase
             output.Add(BackupEntry.Parse(path));
 
         return output;
+    }
+
+    private static bool HasBackup(string backupName)
+    {
+        List<BackupEntry> backups = GetBackups();
+
+        foreach (BackupEntry backup in backups)
+            if (backup.Name == backupName)
+                return true;
+
+        return false;
     }
 
     private static string BackupName() =>
