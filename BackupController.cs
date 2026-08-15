@@ -1,4 +1,5 @@
-﻿using Backup.ObjectDatabase;
+﻿using Backup.Configs;
+using Backup.ObjectDatabase;
 
 namespace Backup;
 
@@ -13,5 +14,8 @@ public static class BackupController
     {
         ObjectReference backup = DatabaseFeeder.Feed("T:\\Backup");
         Console.WriteLine($"{backup.Name}, {backup.Pointer}");
+
+        foreach (string path in PathLoader.Load())
+            Console.WriteLine(path);
     }
 }
