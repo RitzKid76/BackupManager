@@ -40,6 +40,9 @@ public static class DatabaseFeeder
                 tree.AddReference(reference);
         }
 
+        if (tree.References.Count == 0)
+            return null;
+
         return Database.WriteTree(tree);
     }
 }

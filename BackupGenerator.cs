@@ -18,6 +18,9 @@ public static class BackupGenerator
                 root.AddReference(reference);
         }
 
+        if (root.References.Count == 0)
+            return;
+
         Database.WriteBackup(root, BackupName());
     }
 
