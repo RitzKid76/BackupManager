@@ -4,7 +4,7 @@ using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup;
 
-public static class BackupGenerator
+public static class BackupDatabase
 {
     public static void Generate()
     {
@@ -22,6 +22,17 @@ public static class BackupGenerator
             return;
 
         Database.WriteBackup(root, BackupName());
+    }
+
+    public static List<BackupEntry> GetBackups()
+    {
+        List<BackupEntry> output = [];
+
+        string[] paths = Directory.GetFiles(Config.BackupFolder);
+        foreach (string path in paths)
+            output.Add(BackupEntry.Parse(path));
+
+        return output;
     }
 
     private static string BackupName() =>

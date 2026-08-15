@@ -19,7 +19,7 @@ public static class DatabaseFeeder
     private static ObjectReference? FeedDirectory(string path, bool ignorePrefix)
     {
         string name = ignorePrefix
-            ? path[(path.LastIndexOf('\\') + 1)..]
+            ? Util.ExtractNameFromPath(path)
             : path;
 
         Tree tree = new(name);
