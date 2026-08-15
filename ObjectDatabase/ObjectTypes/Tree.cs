@@ -2,14 +2,13 @@ using System.Text;
 
 namespace Backup.ObjectDatabase.ObjectTypes;
 
-public record Tree(string Name, List<ObjectReference> References) :
-    DatabaseObject
+public record Tree(string Name, List<ObjectReference> References)
 {
     public Tree(string name) :
         this(name, [])
     { }
 
-    public override string GetData()
+    public string GetData()
     {
         StringBuilder output = new();
 
