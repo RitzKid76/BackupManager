@@ -4,14 +4,17 @@ namespace Backup.ObjectDatabase;
 
 public static class DatabaseFeeder
 {
-    public static ObjectReference Feed(string directory)
+    public static ObjectReference Feed(string directory, bool ignorePrefix = false)
     {
-        string treeName = directory[(directory.LastIndexOf('\\') + 1)..];
+        string treeName = ignorePrefix
+            ? directory[(directory.LastIndexOf('\\') + 1)..]
+            : directory;
+
         Tree tree = new(treeName);
 
         foreach (string dir in Directory.EnumerateDirectories(directory))
         {
-            ObjectReference references = Feed(dir);
+            ObjectReference references = Feed(dir, true);
             tree.AddReference(references);
         }
 

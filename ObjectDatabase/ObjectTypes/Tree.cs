@@ -20,4 +20,13 @@ public record Tree(string Name, List<ObjectReference> References)
 
     public void AddReference(ObjectReference reference) =>
         References.Add(reference);
+
+    public static Tree Parse(string name, string[] contents)
+    {
+        List<ObjectReference> references = [];
+        foreach (string line in contents)
+            references.Add(ObjectReference.Parse(line));
+
+        return new(name, references);
+    }
 }

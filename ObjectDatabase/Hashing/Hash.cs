@@ -38,13 +38,12 @@ public class Hash
         return new(hash);
     }
 
-    public override string ToString()
+    public static Hash Parse(string hashString)
     {
-        StringBuilder output = new();
-
-        for (int i = 0; i < hash.Length; i++)
-            output.Append($"{hash[i]:x2}");
-
-        return output.ToString();
+        byte[] hash = Convert.FromHexString(hashString);
+        return new(hash);
     }
+
+    public override string ToString() =>
+        Convert.ToHexStringLower(hash);
 }
