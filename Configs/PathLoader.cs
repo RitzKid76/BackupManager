@@ -4,11 +4,11 @@ namespace Backup.Configs;
 
 public static class PathLoader
 {
-    private const string CONFIG = "paths.yml";
+    private const string PATHS = "paths.yml";
 
     public static List<string> Load()
     {
-        var data = ReadPathConfig();
+        Dictionary<string, object> data = ReadPathConfig();
 
         return data
             .SelectMany(drive => FlattenPaths($"{drive.Key}:\\", drive.Value))
@@ -17,10 +17,9 @@ public static class PathLoader
 
     private static Dictionary<string, object> ReadPathConfig()
     {
-        var deserializer = new DeserializerBuilder()
-            .Build();
+        IDeserializer deserializer = new DeserializerBuilder().Build();
 
-        string contents = File.ReadAllText(CONFIG);
+        string contents = File.ReadAllText(PATHS);
 
         return deserializer.Deserialize<Dictionary<string, object>>(contents);
     }
