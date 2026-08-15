@@ -1,0 +1,79 @@
+[*.cs]
+
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = error
+
+# IDE0052: Remove unread private members
+dotnet_diagnostic.IDE0052.severity = error
+
+# CS4014: Because this call is not awaited, execution of the current method continues before the call is completed
+dotnet_diagnostic.CS4014.severity = error
+
+# CS0162: Unreachable code detected
+dotnet_diagnostic.CS0162.severity = error
+
+# IDE0062: Make local function 'static'
+dotnet_diagnostic.IDE0062.severity = error
+
+# IDE0044: Add readonly modifier
+dotnet_diagnostic.IDE0044.severity = error
+
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = error
+
+# IDE0003: Remove qualification
+dotnet_diagnostic.IDE0003.severity = error
+
+# IDE0001: Simplify Names
+dotnet_diagnostic.IDE0001.severity = error
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = error
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = error
+
+# IDE1006: Naming Styles
+dotnet_diagnostic.IDE1006.severity = error
+
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+dotnet_diagnostic.CS8618.severity = error
+
+# IDE0370: Remove unnecessary suppression
+dotnet_diagnostic.IDE0370.severity = error
+
+# IDE0090: Use 'new(...)'
+dotnet_diagnostic.IDE0090.severity = error
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = error
+
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = error
+
+# IDE0047: Remove unnecessary parentheses
+dotnet_diagnostic.IDE0047.severity = error
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = error
+
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = error
+
+# IDE0390: Make method synchronous
+dotnet_diagnostic.IDE0390.severity = error
+
+# CS0219: Variable is assigned but its value is never used
+dotnet_diagnostic.CS0219.severity = error
+
+# CS0659: Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+dotnet_diagnostic.CS0659.severity = error
+
+# IDE0008: Use explicit type
+dotnet_diagnostic.IDE0008.severity = error
+
+# CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
+dotnet_diagnostic.CS8524.severity = error
+
+# CS8604: Possible null reference argument.
+dotnet_diagnostic.CS8604.severity = error
