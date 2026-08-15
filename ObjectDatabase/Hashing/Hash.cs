@@ -20,7 +20,11 @@ public class Hash
             byte[] hash = sha1.ComputeHash(stream);
             return new(hash);
         }
-        catch(IOException)
+        catch(Exception e)
+            when (e
+                is IOException
+                or UnauthorizedAccessException
+            )
         {
             return null;
         }
