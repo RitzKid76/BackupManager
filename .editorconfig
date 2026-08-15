@@ -80,3 +80,15 @@ dotnet_diagnostic.CS8604.severity = error
 
 # IDE0305: Simplify collection initialization
 dotnet_diagnostic.IDE0305.severity = none
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = error
+
+# CS8625: Cannot convert null literal to non-nullable reference type.
+dotnet_diagnostic.CS8625.severity = error
+
+# IDE0160: Convert to block scoped namespace
+dotnet_diagnostic.IDE0160.severity = none
+
+# IDE0130: Namespace does not match folder structure
+dotnet_diagnostic.IDE0130.severity = error
