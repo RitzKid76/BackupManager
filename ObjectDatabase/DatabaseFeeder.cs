@@ -35,7 +35,7 @@ public static class DatabaseFeeder
         {
             FileInfo fileInfo = new(file);
 
-            ObjectReference? reference = Database.WriteFile(fileInfo, !ignorePrefix);
+            ObjectReference? reference = Database.WriteFile(fileInfo, false);
             if (reference is not null)
                 tree.AddReference(reference);
         }
