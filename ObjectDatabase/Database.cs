@@ -1,3 +1,4 @@
+using Backup.Configs;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.ObjectTypes;
 
@@ -5,8 +6,6 @@ namespace Backup.ObjectDatabase;
 
 public static class Database
 {
-    private const string BACKUP_FOLDER = "T:\\database\\";
-
     public static ObjectReference? WriteFile(FileInfo file)
     {
         Hash? hash = Hash.Create(file);
@@ -42,11 +41,21 @@ public static class Database
         return new(tree.Name, DatabaseObjectType.TREE, hash);
     }
 
+    public static void WriteBackup(Tree tree, string backupName)
+    {
+        string backupPath = $"{Config.BackupFolder}\\{backupName}";
+
+        FileInfo backupFile = new(backupPath);
+        using StreamWriter stream = backupFile.CreateText();
+
+        stream.Write(tree.GetData());
+    }
+
     private static (string, string) GetDatabaseFolderAndPath(Hash hash)
     {
         string hashString = hash.ToString();
 
-        string folder = $"{BACKUP_FOLDER}\\{hashString[0..2]}";
+        string folder = $"{Config.DatabaseFolder}\\{hashString[0..2]}";
         string file = hashString[2..];
 
         return (folder, $"{folder}\\{file}");
