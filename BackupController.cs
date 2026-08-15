@@ -7,15 +7,13 @@ public static class BackupController
 {
     public static void Main()
     {
-        WriteTest();
-    }
+        List<string> paths = PathLoader.Load();
+        List<ObjectReference> pathReferences = [];
 
-    private static void WriteTest()
-    {
-        ObjectReference backup = DatabaseFeeder.Feed("T:\\Backup");
-        Console.WriteLine($"{backup.Name}, {backup.Pointer}");
+        foreach (string path in paths)
+            pathReferences.Add(DatabaseFeeder.Feed(path));
 
-        foreach (string path in PathLoader.Load())
-            Console.WriteLine(path);
+        foreach (ObjectReference reference in pathReferences)
+            Console.WriteLine($"{reference.Name}, {reference.Pointer}");
     }
 }
