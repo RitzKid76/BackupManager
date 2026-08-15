@@ -9,6 +9,8 @@ public static class PathLoader
     public static List<string> Load()
     {
         Dictionary<string, object> data = ReadPathConfig();
+        if (data is null)
+            return [];
 
         return data
             .SelectMany(drive => FlattenPaths($"{drive.Key}:\\", drive.Value))
