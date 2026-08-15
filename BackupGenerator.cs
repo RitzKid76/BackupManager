@@ -12,7 +12,11 @@ public static class BackupGenerator
         Tree root = new("root");
 
         foreach (string path in paths)
-            root.AddReference(DatabaseFeeder.Feed(path));
+        {
+            ObjectReference? reference = DatabaseFeeder.Feed(path);
+            if (reference is not null)
+                root.AddReference(reference);
+        }
 
         Database.WriteBackup(root, BackupName());
     }

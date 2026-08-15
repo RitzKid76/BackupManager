@@ -4,25 +4,38 @@ namespace Backup.ObjectDatabase;
 
 public static class DatabaseFeeder
 {
-    public static ObjectReference Feed(string directory, bool ignorePrefix = false)
+    public static ObjectReference? Feed(string path, bool ignorePrefix = false)
     {
-        string treeName = ignorePrefix
-            ? directory[(directory.LastIndexOf('\\') + 1)..]
-            : directory;
+        FileAttributes attribute = File.GetAttributes(path);
+        if (!attribute.HasFlag(FileAttributes.Directory))
+            return FeedFile(path, ignorePrefix);
 
-        Tree tree = new(treeName);
+        return FeedDirectory(path, ignorePrefix);
+    }
 
-        foreach (string dir in Directory.EnumerateDirectories(directory))
+    private static ObjectReference? FeedFile(string path, bool ignorePrefix) =>
+        Database.WriteFile(new(path), !ignorePrefix);
+
+    private static ObjectReference? FeedDirectory(string path, bool ignorePrefix)
+    {
+        string name = ignorePrefix
+            ? path[(path.LastIndexOf('\\') + 1)..]
+            : path;
+
+        Tree tree = new(name);
+
+        foreach (string dir in Directory.EnumerateDirectories(path))
         {
-            ObjectReference references = Feed(dir, true);
-            tree.AddReference(references);
+            ObjectReference? reference = Feed(dir, true);
+            if (reference is not null)
+                tree.AddReference(reference);
         }
 
-        foreach (string file in Directory.EnumerateFiles(directory))
+        foreach (string file in Directory.EnumerateFiles(path))
         {
             FileInfo fileInfo = new(file);
-            
-            ObjectReference? reference = Database.WriteFile(fileInfo);
+
+            ObjectReference? reference = Database.WriteFile(fileInfo, !ignorePrefix);
             if (reference is not null)
                 tree.AddReference(reference);
         }

@@ -6,13 +6,17 @@ namespace Backup.ObjectDatabase;
 
 public static class Database
 {
-    public static ObjectReference? WriteFile(FileInfo file)
+    public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
         Hash? hash = Hash.Create(file);
         if (hash is null)
             return null;
 
-        ObjectReference output = new(file.Name, ObjectFormat.BLOB, hash);
+        string name = withPrefix
+            ? file.FullName
+            : file.Name;
+
+        ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
         Console.WriteLine($"Writing: {file.FullName}");
