@@ -1,4 +1,3 @@
-using Backup.Configs;
 using Backup.ObjectDatabase;
 using Backup.ObjectDatabase.ObjectTypes;
 
@@ -8,9 +7,9 @@ public static class BackupRollback
 {
     private static readonly Queue<ObjectReference> references = [];
 
-    public static void Apply(string backupName)
+    public static void Apply(BackupEntry backup)
     {
-        foreach(ObjectReference reference in Database.ReadBackup(backupName))
+        foreach (ObjectReference reference in backup.References)
             references.Enqueue(reference);
 
         Rollback();
@@ -18,7 +17,7 @@ public static class BackupRollback
 
     private static void EnqueueTree(Tree tree)
     {
-        foreach(ObjectReference reference in tree.References)
+        foreach (ObjectReference reference in tree.References)
         {
             reference.PrependPath(tree.Name);
             references.Enqueue(reference);
@@ -26,11 +25,11 @@ public static class BackupRollback
     }
 
     private static void Rollback()
-    {   
-        // sadly have to use var here since i dont like the yellow squiggle that the nullable generates
-        while(references.TryDequeue(out var reference))
+    {
+        while (references.TryDequeue(out ObjectReference? reference))
         {
-            switch (reference.Format) {
+            switch (reference.Format)
+            {
                 case ObjectFormat.TREE:
                     HandleTree(reference);
                     break;

@@ -86,19 +86,36 @@ public static class Database
         return Tree.Parse(reference.Name, contents);
     }
 
-    public static List<ObjectReference> ReadBackup(string backupName)
+    public static List<Hash> GetAllPointers()
     {
-        string path = $"{Config.BackupFolder}\\{backupName}";
-        string[] contents = File.ReadAllLines(path);
+        List<Hash> output = [];
 
-        List<ObjectReference> output = [];
-        foreach (string line in contents)
-            output.Add(ObjectReference.Parse(line));
+        string[] buckets = Directory.GetDirectories(Config.DatabaseFolder);
+        foreach (string bucket in buckets)
+        {
+            string bucketName = Util.ExtractNameFromPath(bucket);
+
+            string[] pointers = Directory.GetFiles(bucket);
+            foreach (string pointer in pointers)
+            {
+                string pointerName = Util.ExtractNameFromPath(pointer);
+                string hashString = $"{bucketName}{pointerName}";
+
+                output.Add(Hash.Parse(hashString));
+            }
+        }
 
         return output;
     }
 
+    public static void Delete(Hash hash)
+    {
+        (string folder, string path) = GetDatabaseAddress(hash);
+        File.Delete(path);
 
+        if (!Directory.EnumerateFiles(folder).Any())
+            Directory.Delete(folder);
+    }
 
     private static (string, string) GetDatabaseAddress(Hash hash) =>
         GetDatabaseAddress(hash.ToString());

@@ -20,7 +20,7 @@ public class Hash
             byte[] hash = sha1.ComputeHash(stream);
             return new(hash);
         }
-        catch(Exception e)
+        catch (Exception e)
             when (e
                 is IOException
                 or UnauthorizedAccessException
@@ -42,6 +42,18 @@ public class Hash
     {
         byte[] hash = Convert.FromHexString(hashString);
         return new(hash);
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is Hash other &&
+        hash.SequenceEqual(other.hash);
+
+    public override int GetHashCode()
+    {
+        HashCode output = new();
+        output.AddBytes(hash);
+
+        return output.ToHashCode();
     }
 
     public override string ToString() =>
