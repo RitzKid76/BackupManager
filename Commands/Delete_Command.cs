@@ -1,5 +1,6 @@
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
+using Backup.ObjectDatabase;
 
 namespace Backup.Commands;
 
@@ -16,7 +17,13 @@ public class Delete_Command : ICommand
         string backupName = args[0];
 
         if (!BackupDatabase.Delete(backupName, argSet.HasFlag("f")))
+        {
             Console.WriteLine($"couldn't find backup '{backupName}'");
+            return true;
+        }
+
+        if (!argSet.HasFlag("no-gc"))
+            GarbageCollector.Run();
 
         return true;
     }
@@ -24,5 +31,6 @@ public class Delete_Command : ICommand
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("deletes the backup specified by the name provided permanently")
         .Parameter("backup_name", "the name of the backup to delete", true)
-        .Flag("f", "skips the confirmation prompt when deleting the backup");
+        .Flag("f", "skips the confirmation prompt when deleting the backup")
+        .Flag("no-gc", "skips garbage collection");
 }
