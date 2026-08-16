@@ -6,14 +6,14 @@ namespace Backup;
 
 public static class BackupDatabase
 {
-    private static readonly Queue<ObjectReference> rollbackQueue = [];
+    private static readonly Queue<ObjectReference> restoreQueue = [];
 
     public static void Generate(string? backupName = null, bool force = false)
     {
         if (
             backupName is not null &&
             !force &&
-            HasBackup(backupName)
+            TryGetBackup(backupName, out _)
         ) throw new BackupAlreadyExistsException(backupName);
 
         List<string> paths = PathLoader.Load();
@@ -44,23 +44,38 @@ public static class BackupDatabase
         return output;
     }
 
-    private static bool HasBackup(string backupName)
+    private static bool TryGetBackup(string backupName, out BackupEntry? backup)
     {
+        backup = null;
         List<BackupEntry> backups = GetBackups();
 
-        foreach (BackupEntry backup in backups)
-            if (backup.Name == backupName)
+        foreach (BackupEntry b in backups)
+            if (b.Name == backupName)
+            {
+                backup = b;
                 return true;
+            }
 
         return false;
     }
 
-    public static void Restore(BackupEntry backup)
+    public static bool Restore(string backupName)
     {
-        foreach (ObjectReference reference in backup.References)
-            rollbackQueue.Enqueue(reference);
+        if (!TryGetBackup(backupName, out BackupEntry? backup))
+            return false;
 
-        InternalRestore();
+        RestoreReferences(backup!.References);
+        return true;
+    }
+
+    public static bool RestoreLatest()
+    {
+        List<BackupEntry> backups = GetBackups();
+        if (backups.Count == 0)
+            return false;
+
+        RestoreReferences(backups[0].References);
+        return true;
     }
 
     private static void EnqueueTree(Tree tree)
@@ -68,13 +83,16 @@ public static class BackupDatabase
         foreach (ObjectReference reference in tree.References)
         {
             reference.PrependPath(tree.Name);
-            rollbackQueue.Enqueue(reference);
+            restoreQueue.Enqueue(reference);
         }
     }
 
-    private static void InternalRestore()
+    private static void RestoreReferences(List<ObjectReference> references)
     {
-        while (rollbackQueue.TryDequeue(out ObjectReference? reference))
+        foreach (ObjectReference reference in references)
+            restoreQueue.Enqueue(reference);
+
+        while (restoreQueue.TryDequeue(out ObjectReference? reference))
         {
             switch (reference.Format)
             {
@@ -92,6 +110,15 @@ public static class BackupDatabase
     {
         Tree tree = Database.ReadTree(treeReference);
         EnqueueTree(tree);
+    }
+
+    public static bool Delete(string backupName)
+    {
+        if (!TryGetBackup(backupName, out BackupEntry? backup))
+            return false;
+
+        Database.DeleteBackup(backup!);
+        return true;
     }
 
     private static string BackupName() =>

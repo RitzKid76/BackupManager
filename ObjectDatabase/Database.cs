@@ -127,6 +127,12 @@ public static class Database
             Directory.Delete(folder);
     }
 
+    public static void DeleteBackup(BackupEntry backup)
+    {
+        string path = $"{Config.BackupFolder}\\{backup.Name}";
+        File.Delete(path);
+    }
+
     private static (string, string) GetDatabaseAddress(Hash hash) =>
         GetDatabaseAddress(hash.ToString());
 
