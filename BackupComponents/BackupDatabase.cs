@@ -1,4 +1,5 @@
 using Backup.Configs;
+using Backup.Extensions;
 using Backup.ObjectDatabase;
 using Backup.ObjectDatabase.ObjectTypes;
 
@@ -36,12 +37,20 @@ public static class BackupDatabase
     {
         List<BackupEntry> output = [];
 
-        foreach (string path in Directory.EnumerateFiles(Config.BackupFolder))
+        foreach (string path in GetBackupNames(true))
             output.Add(Database.ReadBackup(path));
 
         output.Sort((a, b) => b.CreationTime.CompareTo(a.CreationTime));
 
         return output;
+    }
+
+    private static string[] GetBackupNames(bool keepPrefix)
+    {
+        string[] paths = Directory.GetFiles(Config.BackupFolder);
+        return keepPrefix
+            ? paths
+            : paths.Select(p => p.ExtractPathName()).ToArray();
     }
 
     public static bool TryGetBackup(string backupName, out BackupEntry? backup)
@@ -127,6 +136,15 @@ public static class BackupDatabase
         }
 
         Database.DeleteBackup(backup!);
+
+        return true;
+    }
+
+    public static bool Wipe(bool force = false)
+    {
+        foreach (string backupName in GetBackupNames(false))
+            if (!Delete(backupName, force))
+                return false;
 
         return true;
     }

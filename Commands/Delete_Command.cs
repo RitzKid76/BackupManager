@@ -10,6 +10,20 @@ public class Delete_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
+        bool force = argSet.HasFlag("f");
+        bool gc = !argSet.HasFlag("no-gc");
+
+        if (argSet.HasFlag("wipe-all"))
+        {
+            if (!BackupDatabase.Wipe(force))
+                Console.WriteLine("failed to finish wiping backups");
+
+            if (gc)
+                GarbageCollector.Run();
+
+            return true;
+        }
+
         List<string> args = argSet.GetArguments();
 
         if (args.Count == 0)
@@ -17,13 +31,13 @@ public class Delete_Command : ICommand
 
         string backupName = args[0];
 
-        if (!BackupDatabase.Delete(backupName, argSet.HasFlag("f")))
+        if (!BackupDatabase.Delete(backupName, force))
         {
             Console.WriteLine($"couldn't find backup '{backupName}'");
             return true;
         }
 
-        if (!argSet.HasFlag("no-gc"))
+        if (gc)
             GarbageCollector.Run();
 
         return true;
@@ -33,5 +47,6 @@ public class Delete_Command : ICommand
         .Description("deletes the backup specified by the name provided permanently")
         .Parameter("backup_name", "the name of the backup to delete", true)
         .Flag("f", "skips the confirmation prompt when deleting the backup")
-        .Flag("no-gc", "skips garbage collection");
+        .Flag("no-gc", "skips garbage collection")
+        .Flag("wipe-all", "deletes the entire backup list with no recovery. only use if you know what you are doing");
 }
