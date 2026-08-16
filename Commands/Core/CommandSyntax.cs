@@ -2,15 +2,18 @@ using System.Text;
 
 namespace Backup.Commands.Core;
 
-public class CommandSyntax(string token)
+public class CommandSyntax
 {
     public const int PADDING = 16;
 
-    private readonly string token = token;
+    private readonly string token;
 
     private readonly List<CommandParameter> parameters = [];
     private readonly List<CommandFlag> flags = [];
     private string description = string.Empty;
+
+    public CommandSyntax(string token) =>
+        this.token = token;
 
     public CommandSyntax Description(string description)
     {
