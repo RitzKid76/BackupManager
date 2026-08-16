@@ -1,3 +1,5 @@
+using Backup.Extensions;
+
 namespace Backup.Commands.Core;
 
 public record CommandParameter(string Name, string Description, bool Required)
@@ -7,5 +9,5 @@ public record CommandParameter(string Name, string Description, bool Required)
         : $"[{Name}]";
 
     public override string ToString() =>
-        $"    {Util.PadString(Name, CommandSyntax.PADDING)}{Description}";
+        $"    {Name.PadString(CommandSyntax.PADDING)}{Description}";
 }

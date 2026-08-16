@@ -2,6 +2,7 @@ using System.Text;
 using Backup.BackupComponents;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
+using Backup.Extensions;
 using Backup.ObjectDatabase;
 
 namespace Backup.Commands;
@@ -43,7 +44,7 @@ public class List_Command : ICommand
         output.AppendLine(new string('-', 80));
 
         string creationTimeString = DateTimeOffset.FromUnixTimeMilliseconds(backup.CreationTime).LocalDateTime.ToString("f");
-        output.Append(Util.PadString(creationTimeString, 48));
+        output.Append(creationTimeString.PadString(48));
 
         output.Append(backup.Name);
 

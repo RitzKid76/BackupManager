@@ -1,4 +1,5 @@
 using Backup.Configs;
+using Backup.Extensions;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.ObjectTypes;
 
@@ -71,7 +72,7 @@ public static class Database
 
         FileInfo file = new(databasePath);
 
-        Directory.CreateDirectory(Util.ExtractDirectoryFromPath(path));
+        Directory.CreateDirectory(path.ExtractPathDirectory());
         file.CopyTo(path, true);
     }
 
@@ -88,7 +89,7 @@ public static class Database
 
     public static BackupEntry ReadBackup(string path)
     {
-        string backupName = Util.ExtractNameFromPath(path);
+        string backupName = path.ExtractPathName();
 
         string[] contents = File.ReadAllLines(path);
         return BackupEntry.Parse(backupName, contents);
@@ -103,12 +104,12 @@ public static class Database
         string[] buckets = Directory.GetDirectories(Config.DatabaseFolder);
         foreach (string bucket in buckets)
         {
-            string bucketName = Util.ExtractNameFromPath(bucket);
+            string bucketName = bucket.ExtractPathName();
 
             string[] pointers = Directory.GetFiles(bucket);
             foreach (string pointer in pointers)
             {
-                string pointerName = Util.ExtractNameFromPath(pointer);
+                string pointerName = pointer.ExtractPathName();
                 string hashString = $"{bucketName}{pointerName}";
 
                 output.Add(Hash.Parse(hashString));

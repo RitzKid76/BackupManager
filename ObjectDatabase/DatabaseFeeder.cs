@@ -1,3 +1,4 @@
+using Backup.Extensions;
 using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.ObjectDatabase;
@@ -19,7 +20,7 @@ public static class DatabaseFeeder
     private static ObjectReference? FeedDirectory(string path, bool ignorePrefix)
     {
         string name = ignorePrefix
-            ? Util.ExtractNameFromPath(path)
+            ? path.ExtractPathName()
             : path;
 
         Tree tree = new(name);
