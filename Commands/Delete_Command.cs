@@ -14,7 +14,7 @@ public class Delete_Command : ICommand
         if (argSet.HasFlag("wipe-all"))
         {
             if (!BackupDatabase.Wipe(force))
-                Console.WriteLine("failed to finish wiping backups");
+                BackupLogger.Log("failed to finish wiping backups");
 
             return true;
         }
@@ -28,7 +28,7 @@ public class Delete_Command : ICommand
 
         if (!BackupDatabase.Delete(backupName, force))
         {
-            Console.WriteLine($"couldn't find backup '{backupName}'");
+            BackupLogger.Log($"couldn't find backup '{backupName}'");
             return true;
         }
 

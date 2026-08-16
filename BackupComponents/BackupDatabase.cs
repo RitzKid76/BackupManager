@@ -109,7 +109,7 @@ public static class BackupDatabase
                     HandleTreeRollback(reference);
                     break;
                 case ObjectFormat.BLOB:
-                    Database.ReadFile(reference);
+                    Database.RestoreFile(reference);
                     break;
             }
         }

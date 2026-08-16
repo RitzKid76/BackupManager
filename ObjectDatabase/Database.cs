@@ -1,3 +1,4 @@
+using Backup.BackupComponents;
 using Backup.Configs;
 using Backup.Extensions;
 using Backup.ObjectDatabase.Hashing;
@@ -20,7 +21,7 @@ public static class Database
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
-        Console.WriteLine($"Writing: {file.FullName}");
+        BackupLogger.Info($"Writing: {file.FullName}");
 
         if (File.Exists(databasePath))
             return output;
@@ -60,7 +61,7 @@ public static class Database
 
 
 
-    public static void ReadFile(ObjectReference reference)
+    public static void RestoreFile(ObjectReference reference)
     {
         if (reference.Format != ObjectFormat.BLOB)
             throw new ArgumentException($"Expected BLOB but found {reference.Format}");
@@ -68,7 +69,7 @@ public static class Database
         string path = reference.Name;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
-        Console.WriteLine($"Reading: {path}");
+        BackupLogger.Info($"Restoring: {path}");
 
         FileInfo file = new(databasePath);
 
