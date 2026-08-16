@@ -44,7 +44,7 @@ public static class BackupDatabase
         return output;
     }
 
-    private static bool TryGetBackup(string backupName, out BackupEntry? backup)
+    public static bool TryGetBackup(string backupName, out BackupEntry? backup)
     {
         backup = null;
         List<BackupEntry> backups = GetBackups();
