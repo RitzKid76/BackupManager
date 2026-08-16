@@ -5,7 +5,7 @@ using Backup.ObjectDatabase;
 namespace Backup.Commands;
 
 [Command("gc")]
-public class GC_Command : ICommand
+public class GarbageCollect_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {

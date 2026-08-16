@@ -24,7 +24,11 @@ public class Restore_Command : ICommand
             }
         }
 
-        BackupDatabase.RestoreLatest();
+        if (!BackupDatabase.RestoreLatest())
+        {
+            Logger.Log("no backups found");
+            return true;
+        }
 
         Logger.DisableInfo();
         return true;
