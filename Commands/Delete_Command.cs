@@ -1,4 +1,4 @@
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 
@@ -14,7 +14,7 @@ public class Delete_Command : ICommand
         if (argSet.HasFlag("wipe-all"))
         {
             if (!BackupDatabase.Wipe(force))
-                BackupLogger.Log("failed to finish wiping backups");
+                Logger.Log("failed to finish wiping backups");
 
             return true;
         }
@@ -28,7 +28,7 @@ public class Delete_Command : ICommand
 
         if (!BackupDatabase.Delete(backupName, force))
         {
-            BackupLogger.Log($"couldn't find backup '{backupName}'");
+            Logger.Log($"couldn't find backup '{backupName}'");
             return true;
         }
 

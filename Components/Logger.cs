@@ -1,6 +1,6 @@
-namespace Backup.BackupComponents;
+namespace Backup.Components;
 
-public static class BackupLogger
+public static class Logger
 {
     private static bool enabled = false;
 

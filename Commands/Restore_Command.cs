@@ -1,4 +1,4 @@
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 
@@ -10,7 +10,7 @@ public class Restore_Command : ICommand
     public bool Execute(ArgumentSet argSet)
     {
         if (argSet.HasFlag("v"))
-            BackupLogger.EnableInfo();
+            Logger.EnableInfo();
 
         List<string> args = argSet.GetArguments();
         if (args.Count > 0)
@@ -19,14 +19,14 @@ public class Restore_Command : ICommand
 
             if (!BackupDatabase.Restore(backupName))
             {
-                BackupLogger.Log($"couldn't find backup '{backupName}'");
+                Logger.Log($"couldn't find backup '{backupName}'");
                 return true;
             }
         }
 
         BackupDatabase.RestoreLatest();
 
-        BackupLogger.DisableInfo();
+        Logger.DisableInfo();
         return true;
     }
 

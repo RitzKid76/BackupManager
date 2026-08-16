@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text;
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Arguments;
 
 namespace Backup.Commands.Core;
@@ -64,7 +64,7 @@ public static class CommandExecutor
         {
             CommandSyntax syntax = new(token);
 
-            BackupLogger.Log(command!.GetSyntax(syntax).GenerateSyntax(true));
+            Logger.Log(command!.GetSyntax(syntax).GenerateSyntax(true));
             return;
         }
 
@@ -73,7 +73,7 @@ public static class CommandExecutor
         foreach (KeyValuePair<string, Func<ICommand>> pair in commands)
             allHelp.AppendLine(pair.Value.Invoke().GetSyntax(new(pair.Key)).GenerateSyntax());
 
-        BackupLogger.Log(allHelp.ToString());
+        Logger.Log(allHelp.ToString());
     }
 
     private static bool TryGetCommand(string token, out ICommand? command)

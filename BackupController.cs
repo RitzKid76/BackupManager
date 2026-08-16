@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Core;
 
 namespace Backup;
@@ -16,7 +16,7 @@ public static class BackupController
 
     private static void ContinuousMode()
     {
-        BackupLogger.Log("started continuous mode\nrun 'help' for options, and 'exit' to exit");
+        Logger.Log("started continuous mode\nrun 'help' for options, and 'exit' to exit");
 
         const string tokenPattern = @"[^\s""']+|""([^""]*)""|'([^']*)'";
 

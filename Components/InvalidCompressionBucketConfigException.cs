@@ -1,4 +1,4 @@
-namespace Backup.BackupComponents;
+namespace Backup.Components;
 
 public class InvalidCompressionBucketConfig() : Exception(
     "Ensure that all compression buckets are created in descending order where the first entry is the longest time"

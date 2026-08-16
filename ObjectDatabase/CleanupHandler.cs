@@ -1,4 +1,4 @@
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Configs;
 
 namespace Backup.ObjectDatabase;
@@ -39,7 +39,7 @@ public static class CleanupHandler
     {
         running = true;
 
-        BackupCompressor.Run();
+        Compressor.Run();
 
         if (Config.GarbageCollect)
             GarbageCollector.Run();

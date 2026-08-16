@@ -1,4 +1,4 @@
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 
@@ -15,10 +15,10 @@ public class Start_Command : ICommand
             : null;
 
         if (argSet.HasFlag("v"))
-            BackupLogger.EnableInfo();
+            Logger.EnableInfo();
 
         BackupDatabase.Generate(backupName, argSet.HasFlag("f"));
-        BackupLogger.DisableInfo();
+        Logger.DisableInfo();
 
         return true;
     }

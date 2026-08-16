@@ -1,5 +1,5 @@
 using System.Text;
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 using Backup.Extensions;
@@ -19,7 +19,7 @@ public class List_Command : ICommand
 
             if (!BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup))
             {
-                BackupLogger.Log($"couldn't find backup '{backupName}'");
+                Logger.Log($"couldn't find backup '{backupName}'");
                 return true;
             }
 
@@ -32,7 +32,7 @@ public class List_Command : ICommand
             if (argSet.HasFlag("l"))
                 PrintAll(backup);
             else
-                BackupLogger.Log(backup.Name);
+                Logger.Log(backup.Name);
 
         return true;
     }
@@ -58,7 +58,7 @@ public class List_Command : ICommand
             output.AppendLine($"|   X sampleRemoval.txt");
         }
 
-        BackupLogger.Log(output.ToString());
+        Logger.Log(output.ToString());
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax

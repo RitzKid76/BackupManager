@@ -1,4 +1,4 @@
-using Backup.BackupComponents;
+using Backup.Components;
 using Backup.Configs;
 using Backup.Extensions;
 using Backup.ObjectDatabase.Hashing;
@@ -21,7 +21,7 @@ public static class Database
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
-        BackupLogger.Info($"Writing: {file.FullName}");
+        Logger.Info($"Writing: {file.FullName}");
 
         if (File.Exists(databasePath))
             return output;
@@ -69,7 +69,7 @@ public static class Database
         string path = reference.Name;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
-        BackupLogger.Info($"Restoring: {path}");
+        Logger.Info($"Restoring: {path}");
 
         FileInfo file = new(databasePath);
 

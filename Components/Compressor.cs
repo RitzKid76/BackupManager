@@ -3,9 +3,9 @@ using Backup.Configs;
 using Backup.Extensions;
 using Backup.ObjectDatabase;
 
-namespace Backup.BackupComponents;
+namespace Backup.Components;
 
-public static class BackupCompressor
+public static class Compressor
 {
     private static readonly Dictionary<char, long> timeMap = new() {
         {'s', 1_000},
@@ -20,7 +20,7 @@ public static class BackupCompressor
     private static readonly Dictionary<long, List<string>> buckets = [];
     private static readonly List<long> bucketTimes = [];
 
-    static BackupCompressor() =>
+    static Compressor() =>
         StashBucketTimes();
 
     private static void StashBucketTimes()
