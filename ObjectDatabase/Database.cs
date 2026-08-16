@@ -41,9 +41,8 @@ public static class Database
         Directory.CreateDirectory(databaseFolder);
 
         FileInfo file = new(databasePath);
-        using StreamWriter stream = file.CreateText();
-
-        stream.Write(data);
+        using (StreamWriter stream = file.CreateText())
+            stream.Write(data);
 
         return new(tree.Name, ObjectFormat.TREE, hash);
     }
@@ -53,9 +52,10 @@ public static class Database
         string backupPath = $"{Config.BackupFolder}\\{backup.Name}";
 
         FileInfo backupFile = new(backupPath);
-        using StreamWriter stream = backupFile.CreateText();
+        using (StreamWriter stream = backupFile.CreateText())
+            stream.Write(backup.ToString());
 
-        stream.Write(backup.ToString());
+        CleanupHandler.Run();
     }
 
 
@@ -132,6 +132,8 @@ public static class Database
     {
         string path = $"{Config.BackupFolder}\\{backup.Name}";
         File.Delete(path);
+
+        CleanupHandler.Run();
     }
 
     private static (string, string) GetDatabaseAddress(Hash hash) =>

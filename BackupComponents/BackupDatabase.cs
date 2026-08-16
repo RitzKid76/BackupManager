@@ -142,10 +142,16 @@ public static class BackupDatabase
 
     public static bool Wipe(bool force = false)
     {
+        CleanupHandler.BeginWork();
+
         foreach (string backupName in GetBackupNames(false))
             if (!Delete(backupName, force))
+            {
+                CleanupHandler.EndWork();
                 return false;
+            }
 
+        CleanupHandler.EndWork();
         return true;
     }
 

@@ -52,7 +52,7 @@ public static class BackupCompressor
         return count * timeMap[timeType];
     }
 
-    public static void Compress()
+    public static void Run()
     {
         PopulateBuckets();
         TrimBuckets();

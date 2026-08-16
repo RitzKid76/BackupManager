@@ -9,6 +9,7 @@ public static class Config
     public static string BackupFolder { get; private set; } = string.Empty;
     public static string DatabaseFolder { get; private set; } = string.Empty;
     public static string[] CompressionBuckets { get; private set; } = [];
+    public static bool GarbageCollect { get; private set; } = true;
 
     static Config() =>
         LoadConfigJson();
@@ -27,5 +28,6 @@ public static class Config
         BackupFolder = model.BackupFolder;
         DatabaseFolder = model.DatabaseFolder;
         CompressionBuckets = model.CompressionBuckets;
+        GarbageCollect = model.GarbageCollect;
     }
 }

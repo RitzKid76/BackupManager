@@ -1,7 +1,6 @@
 using Backup.BackupComponents;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
-using Backup.ObjectDatabase;
 
 namespace Backup.Commands;
 
@@ -17,15 +16,11 @@ public class Start_Command : ICommand
 
         BackupDatabase.Generate(backupName, argSet.HasFlag("f"));
 
-        if (!argSet.HasFlag("no-gc"))
-            GarbageCollector.Run();
-
         return true;
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("starts the backup process using the path file")
         .Parameter("backup_name", "the name of the backup to create. default is the date of creation")
-        .Flag("f", "forces the backup if one with the same name already exists")
-        .Flag("no-gc", "skips garbage collection");
+        .Flag("f", "forces the backup if one with the same name already exists");
 }

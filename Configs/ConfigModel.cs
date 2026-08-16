@@ -3,5 +3,6 @@ namespace Backup.Configs;
 public record ConfigModel(
     string BackupFolder,
     string DatabaseFolder,
-    string[] CompressionBuckets
+    string[] CompressionBuckets,
+    bool GarbageCollect
 );
