@@ -89,11 +89,10 @@ public static class BackupDatabase
 
     private static void EnqueueTree(Tree tree)
     {
+        tree.PrependRefernces();
+
         foreach (ObjectReference reference in tree.References)
-        {
-            reference.PrependPath(tree.Name);
             restoreQueue.Enqueue(reference);
-        }
     }
 
     private static void RestoreReferences(List<ObjectReference> references)

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Backup.ObjectDatabase.Hashing;
 
-public class Hash
+public class Hash : IEquatable<Hash>
 {
     private readonly byte[] hash;
 
@@ -44,8 +44,8 @@ public class Hash
         return new(hash);
     }
 
-    public override bool Equals(object? obj) =>
-        obj is Hash other &&
+    public bool Equals(Hash? other) =>
+        other is not null &&
         hash.SequenceEqual(other.hash);
 
     public override int GetHashCode()

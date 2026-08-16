@@ -41,7 +41,7 @@ public static class DatabaseFeeder
                 tree.AddReference(reference);
         }
 
-        if (tree.References.Count == 0)
+        if (!tree.References.Any())
             return null;
 
         return Database.WriteTree(tree);

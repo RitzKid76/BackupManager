@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Backup.Components;
 
 public static class Logger
@@ -29,5 +31,11 @@ public static class Logger
     {
         foreach (object input in inputs)
             Console.WriteLine(input);
+    }
+
+    public static void Log(ICollection inputs)
+    {
+        foreach (object input in inputs)
+            Log(input);
     }
 }
