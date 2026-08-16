@@ -112,12 +112,22 @@ public static class BackupDatabase
         EnqueueTree(tree);
     }
 
-    public static bool Delete(string backupName)
+    public static bool Delete(string backupName, bool force = false)
     {
         if (!TryGetBackup(backupName, out BackupEntry? backup))
             return false;
 
+        if (!force)
+        {
+            Console.Write($"are you sure you want to delete backup '{backupName}'? (y/N): ");
+
+            string? answer = Console.ReadLine();
+            if (answer != "y" && answer != "yes")
+                return true;
+        }
+
         Database.DeleteBackup(backup!);
+
         return true;
     }
 
