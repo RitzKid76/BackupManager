@@ -2,7 +2,7 @@ using Backup.Configs;
 using Backup.ObjectDatabase;
 using Backup.ObjectDatabase.ObjectTypes;
 
-namespace Backup;
+namespace Backup.BackupComponents;
 
 public static class BackupDatabase
 {
