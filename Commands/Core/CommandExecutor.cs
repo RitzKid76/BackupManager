@@ -63,7 +63,7 @@ public static class CommandExecutor
         {
             CommandSyntax syntax = new(token);
 
-            Console.WriteLine(command!.GetSyntax(syntax).GenerateSyntax());
+            Console.WriteLine(command!.GetSyntax(syntax).GenerateSyntax(true));
             return;
         }
 

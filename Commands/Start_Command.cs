@@ -23,7 +23,8 @@ public class Start_Command : ICommand
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
-        .AddParameter("backup_name", "the name of the backup to create. default is the timestamp of creation")
-        .AddFlag("f", "forces the backup if one with the same name already exists")
-        .AddFlag("no-gc", "skips garbage collection");
+        .Description("starts the backup process using the path file")
+        .Parameter("backup_name", "the name of the backup to create. default is the date of creation")
+        .Flag("f", "forces the backup if one with the same name already exists")
+        .Flag("no-gc", "skips garbage collection");
 }

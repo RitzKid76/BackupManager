@@ -17,28 +17,29 @@ public static class BackupDatabase
         ) throw new BackupAlreadyExistsException(backupName);
 
         List<string> paths = PathLoader.Load();
-        Tree root = new("root");
+        BackupEntry backup = new(backupName ?? BackupName());
 
         foreach (string path in paths)
         {
             ObjectReference? reference = DatabaseFeeder.Feed(path);
             if (reference is not null)
-                root.AddReference(reference);
+                backup.AddReference(reference);
         }
 
-        if (root.References.Count == 0)
+        if (backup.References.Count == 0)
             return;
 
-        Database.WriteBackup(root, backupName ?? BackupName());
+        Database.WriteBackup(backup);
     }
 
     public static List<BackupEntry> GetBackups()
     {
         List<BackupEntry> output = [];
 
-        string[] paths = Directory.GetFiles(Config.BackupFolder);
-        foreach (string path in paths)
-            output.Add(BackupEntry.Parse(path));
+        foreach (string path in Directory.EnumerateFiles(Config.BackupFolder))
+            output.Add(Database.ReadBackup(path));
+
+        output.Sort((a, b) => b.CreationTime.CompareTo(a.CreationTime));
 
         return output;
     }
@@ -54,12 +55,12 @@ public static class BackupDatabase
         return false;
     }
 
-    public static void Rollback(BackupEntry backup)
+    public static void Restore(BackupEntry backup)
     {
         foreach (ObjectReference reference in backup.References)
             rollbackQueue.Enqueue(reference);
 
-        Rollback();
+        InternalRestore();
     }
 
     private static void EnqueueTree(Tree tree)
@@ -71,7 +72,7 @@ public static class BackupDatabase
         }
     }
 
-    private static void Rollback()
+    private static void InternalRestore()
     {
         while (rollbackQueue.TryDequeue(out ObjectReference? reference))
         {

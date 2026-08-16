@@ -32,7 +32,7 @@ public static class Database
 
     public static ObjectReference WriteTree(Tree tree)
     {
-        string data = tree.GetData();
+        string data = tree.ToString();
         Hash hash = Hash.Create(data);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
@@ -47,14 +47,14 @@ public static class Database
         return new(tree.Name, ObjectFormat.TREE, hash);
     }
 
-    public static void WriteBackup(Tree tree, string backupName)
+    public static void WriteBackup(BackupEntry backup)
     {
-        string backupPath = $"{Config.BackupFolder}\\{backupName}";
+        string backupPath = $"{Config.BackupFolder}\\{backup.Name}";
 
         FileInfo backupFile = new(backupPath);
         using StreamWriter stream = backupFile.CreateText();
 
-        stream.Write(tree.GetData());
+        stream.Write(backup.ToString());
     }
 
 
@@ -66,12 +66,12 @@ public static class Database
 
         string path = reference.Name;
 
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(reference.Pointer);
+        (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
         Console.WriteLine($"Reading: {path}");
 
         FileInfo file = new(databasePath);
 
-        Directory.CreateDirectory(databaseFolder);
+        Directory.CreateDirectory(Util.ExtractDirectoryFromPath(path));
         file.CopyTo(path, true);
     }
 
@@ -85,6 +85,16 @@ public static class Database
         string[] contents = File.ReadAllLines(databasePath);
         return Tree.Parse(reference.Name, contents);
     }
+
+    public static BackupEntry ReadBackup(string path)
+    {
+        string backupName = Util.ExtractNameFromPath(path);
+
+        string[] contents = File.ReadAllLines(path);
+        return BackupEntry.Parse(backupName, contents);
+    }
+
+
 
     public static List<Hash> GetAllPointers()
     {

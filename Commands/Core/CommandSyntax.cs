@@ -10,23 +10,41 @@ public class CommandSyntax(string token)
 
     private readonly List<CommandParameter> parameters = [];
     private readonly List<CommandFlag> flags = [];
+    private string description = string.Empty;
 
-    public CommandSyntax AddParameter(string name, string description, bool required = false)
+    public CommandSyntax Description(string description)
+    {
+        this.description = description;
+        return this;
+    }
+
+    public CommandSyntax Parameter(string name, string description, bool required = false)
     {
         parameters.Add(new(name, description, required));
         return this;
     }
 
-    public CommandSyntax AddFlag(string flag, string description, Type? valueType = null)
+    public CommandSyntax Flag(string flag, string description, Type? valueType = null)
     {
         flags.Add(new(flag, description, valueType));
         return this;
     }
 
-    public string GenerateSyntax()
+    public string GenerateSyntax(bool includeDescriptionHeader = false)
     {
         StringBuilder output = new();
-        output.Append($"{token} ");
+        string indent = string.Empty;
+
+        if (includeDescriptionHeader && !string.IsNullOrEmpty(description))
+        {
+            output.AppendLine(new string('-', 80));
+            output.AppendLine(description);
+            output.AppendLine(new string('-', 80));
+
+            indent = "|   ";
+        }
+
+        output.Append($"{indent}{token} ");
 
         foreach (CommandParameter parameter in parameters)
             output.Append($"{parameter.GetName()} ");
@@ -37,10 +55,10 @@ public class CommandSyntax(string token)
         output.AppendLine();
 
         foreach (CommandParameter parameter in parameters)
-            output.AppendLine(parameter.ToString());
+            output.AppendLine($"{indent}{parameter}");
 
         foreach (CommandFlag flag in flags)
-            output.AppendLine(flag.ToString());
+            output.AppendLine($"{indent}{flag}");
 
         return output.ToString();
     }

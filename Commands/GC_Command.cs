@@ -13,5 +13,6 @@ public class GC_Command : ICommand
         return true;
     }
 
-    public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax;
+    public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
+        .Description("deletes any unreferenced objects in the database.\nthis process runs automatically when running backup commands\nthis will not delete your backups or important data");
 }

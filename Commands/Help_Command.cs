@@ -19,5 +19,6 @@ public class Help_Command : ICommand
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
-        .AddParameter("command", "the command you need help with");
+        .Description("list any parameters and flags for a given command\ncommand descriptions headers are given when showing a single command")
+        .Parameter("command", "use this to see a description of the command");
 }
