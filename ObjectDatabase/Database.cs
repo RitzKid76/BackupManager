@@ -27,7 +27,9 @@ public static class Database
             return output;
 
         Directory.CreateDirectory(databaseFolder);
-        file.CopyTo(databasePath);
+
+        bool isCompressed = GZIP.Write(file, databasePath);
+        output.MarkCompressed(isCompressed);
 
         return output;
     }
@@ -74,7 +76,11 @@ public static class Database
         FileInfo file = new(databasePath);
 
         Directory.CreateDirectory(path.ExtractPathDirectory());
-        file.CopyTo(path, true);
+
+        if (reference.IsCompressed())
+            GZIP.Read(file, path);
+        else
+            file.CopyTo(path, true);
     }
 
     public static Tree ReadTree(ObjectReference reference)

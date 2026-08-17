@@ -9,6 +9,8 @@ public class ObjectReference
     public ObjectFormat Format { get; private set; }
     public Hash Pointer { get; private set; }
 
+    private bool compressed;
+
     public ObjectReference(string name, ObjectFormat format, Hash pointer)
     {
         Name = name;
@@ -24,8 +26,18 @@ public class ObjectReference
             return false;
 
         char formatChar = contents[0];
-        string hashString = contents[2..42];
-        string name = contents[43..];
+
+        char compressionChar = contents[1];
+        bool compressed = compressionChar == 'C';
+
+        int offset = compressed
+            ? 3
+            : 2;
+
+        contents = contents[offset..];
+
+        string hashString = contents[0..40];
+        string name = contents[41..];
 
         ObjectFormat? format = Extensions_ObjectFormat.Parse(formatChar);
         if (format is null)
@@ -34,12 +46,24 @@ public class ObjectReference
         Hash pointer = Hash.Parse(hashString);
 
         output = new(name, format.Value, pointer);
+        output.MarkCompressed(compressed);
+
         return true;
     }
+
+    public void MarkCompressed(bool compressed) =>
+        this.compressed = compressed;
+
+    public bool IsCompressed() =>
+        compressed;
+
+    private char? CompressionChar() => compressed
+        ? 'C'
+        : null;
 
     public void PrependPath(string path) =>
         Name = $"{path}\\{Name}";
 
     public override string ToString() =>
-        $"{Format.GetFormatChar()} {Pointer} {Name}";
+        $"{Format.GetFormatChar()}{CompressionChar()} {Pointer} {Name}";
 }
