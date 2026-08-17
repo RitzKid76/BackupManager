@@ -4,7 +4,8 @@ namespace Backup.ObjectDatabase;
 
 public static class GZIP
 {
-    private static readonly HashSet<string> alreadyCompressed = new(StringComparer.OrdinalIgnoreCase) {
+    private static readonly HashSet<string> alreadyCompressed = new(StringComparer.OrdinalIgnoreCase)
+    {
         // archives
         ".zip", ".7z", ".rar",
         ".gz", ".tgz", ".bz2",
@@ -46,7 +47,7 @@ public static class GZIP
         using FileStream sourceStream = source.OpenRead();
         using FileStream destinationStream = File.Create(destination);
 
-        using GZipStream compressedStream = new(destinationStream, CompressionLevel.Optimal, true);
+        using GZipStream compressedStream = new(destinationStream, CompressionLevel.SmallestSize, true);
         sourceStream.CopyTo(compressedStream);
 
         return true;
