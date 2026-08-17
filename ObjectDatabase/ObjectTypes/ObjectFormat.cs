@@ -8,19 +8,19 @@ public enum ObjectFormat
 
 public static class Extensions_ObjectFormat
 {
-    public static char GetFormatChar(this ObjectFormat type) => type switch
+    public static char GetFormatChar(this ObjectFormat format) => format switch
     {
         ObjectFormat.TREE => 'T',
         ObjectFormat.BLOB => 'B',
 
-        _ => throw new ArgumentException($"Unknown {nameof(ObjectFormat)}: {type}")
+        _ => throw new ArgumentException($"Unknown {nameof(ObjectFormat)}: {format}")
     };
 
-    public static ObjectFormat Parse(char formatChar) => formatChar switch
+    public static ObjectFormat? Parse(char formatChar) => formatChar switch
     {
         'T' => ObjectFormat.TREE,
         'B' => ObjectFormat.BLOB,
 
-        _ => throw new ArgumentException($"Unknown {nameof(ObjectFormat)} format char: {formatChar}")
+        _ => null
     };
 }

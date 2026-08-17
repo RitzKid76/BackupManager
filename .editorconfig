@@ -101,3 +101,6 @@ dotnet_diagnostic.IDE0290.severity = none
 
 # CA1067: Override Object.Equals(object) when implementing IEquatable<T>
 dotnet_diagnostic.CA1067.severity = none
+
+# CA1806: Do not ignore method results
+dotnet_diagnostic.CA1806.severity = none

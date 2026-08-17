@@ -16,16 +16,25 @@ public class ObjectReference
         Pointer = pointer;
     }
 
-    public static ObjectReference Parse(string contents)
+    public static bool TryParse(string contents, out ObjectReference? output)
     {
+        output = null;
+
+        if (contents.Length < 44)
+            return false;
+
         char formatChar = contents[0];
         string hashString = contents[2..42];
         string name = contents[43..];
 
-        ObjectFormat format = Extensions_ObjectFormat.Parse(formatChar);
+        ObjectFormat? format = Extensions_ObjectFormat.Parse(formatChar);
+        if (format is null)
+            return false;
+
         Hash pointer = Hash.Parse(hashString);
 
-        return new(name, format, pointer);
+        output = new(name, format.Value, pointer);
+        return true;
     }
 
     public void PrependPath(string path) =>

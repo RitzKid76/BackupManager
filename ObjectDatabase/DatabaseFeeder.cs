@@ -7,11 +7,22 @@ public static class DatabaseFeeder
 {
     public static ObjectReference? Feed(string path, bool ignorePrefix = false)
     {
-        FileAttributes attribute = File.GetAttributes(path);
-        if (!attribute.HasFlag(FileAttributes.Directory))
-            return FeedFile(path, ignorePrefix);
+        try
+        {
+            FileAttributes attribute = File.GetAttributes(path);
+            if (!attribute.HasFlag(FileAttributes.Directory))
+                return FeedFile(path, ignorePrefix);
 
-        return FeedDirectory(path, ignorePrefix);
+            return FeedDirectory(path, ignorePrefix);
+        }
+        catch (Exception e)
+            when (e
+                is IOException
+                or UnauthorizedAccessException
+            )
+        {
+            return null;
+        }
     }
 
     private static ObjectReference? FeedFile(string path, bool ignorePrefix) =>

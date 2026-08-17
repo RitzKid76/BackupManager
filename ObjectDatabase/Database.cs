@@ -21,7 +21,7 @@ public static class Database
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
-        Logger.Info($"Writing: {file.FullName}");
+        Logger.Info($"writing: {file.FullName}");
 
         if (File.Exists(databasePath))
             return output;
@@ -69,7 +69,7 @@ public static class Database
         string path = reference.Name;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
-        Logger.Info($"Restoring: {path}");
+        Logger.Info($"restoring: {path}");
 
         FileInfo file = new(databasePath);
 
@@ -122,6 +122,8 @@ public static class Database
 
     public static void Delete(Hash hash)
     {
+        Logger.Info($"deleting: {hash}");
+
         (string folder, string path) = GetDatabaseAddress(hash);
         File.Delete(path);
 

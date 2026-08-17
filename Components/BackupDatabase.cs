@@ -1,3 +1,4 @@
+using Backup.Components.Differences;
 using Backup.Configs;
 using Backup.Extensions;
 using Backup.ObjectDatabase;
@@ -29,6 +30,14 @@ public static class BackupDatabase
 
         if (backup.References.Count == 0)
             return;
+
+        List<BackupEntry> backups = GetBackups();
+        if (backups.Count > 0)
+        {
+            List<Difference> differences = DifferenceGenerator.FromBackup(backups[0], backup);
+            foreach (Difference difference in differences)
+                backup.AddDifference(difference);
+        }
 
         Database.WriteBackup(backup);
     }

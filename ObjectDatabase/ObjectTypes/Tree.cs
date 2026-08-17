@@ -1,17 +1,20 @@
 using System.Text;
-using Backup.ObjectDatabase.Hashing;
 
 namespace Backup.ObjectDatabase.ObjectTypes;
 
 public class Tree
 {
     public string Name { get; private set; }
-    public IEnumerable<ObjectReference> References { get => references.Values; }
+    public IEnumerable<ObjectReference> References => references;
 
-    private readonly Dictionary<Hash, ObjectReference> references = [];
+    private readonly List<ObjectReference> references = [];
 
     public Tree(string name) :
         this(name, [])
+    { }
+
+    public Tree(List<ObjectReference> references) :
+        this(string.Empty, references)
     { }
 
     private Tree(string name, List<ObjectReference> references)
@@ -27,25 +30,28 @@ public class Tree
     }
 
     public void AddReference(ObjectReference reference) =>
-        references.Add(reference.Pointer, reference);
+        references.Add(reference);
 
     public static Tree Parse(string name, string[] contents)
     {
         List<ObjectReference> references = [];
         foreach (string line in contents)
-            references.Add(ObjectReference.Parse(line));
+        {
+            ObjectReference.TryParse(line, out ObjectReference? reference);
+            references.Add(reference!);
+        }
 
         return new(name, references);
     }
 
     public void PrependRefernces()
     {
+        if (string.IsNullOrWhiteSpace(Name))
+            return;
+
         foreach (ObjectReference reference in References)
             reference.PrependPath(Name);
     }
-
-    public bool TryGetReferenceByPointer(Hash hash, out ObjectReference? reference) =>
-        references.TryGetValue(hash, out reference);
 
     public override string ToString()
     {

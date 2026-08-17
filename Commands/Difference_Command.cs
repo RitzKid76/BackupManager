@@ -39,7 +39,7 @@ public class Difference_Command : ICommand
         if (previous is null)
             return true;
 
-        List<Difference> differences = DifferenceGenerator.TemporaryTestFunction(previous, current!);
+        List<Difference> differences = DifferenceGenerator.FromBackup(previous, current!);
         Logger.Log(differences);
 
         return true;

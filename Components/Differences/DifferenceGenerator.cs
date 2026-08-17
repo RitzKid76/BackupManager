@@ -5,12 +5,18 @@ namespace Backup.Components.Differences;
 
 public static class DifferenceGenerator
 {
-    public static List<Difference> TemporaryTestFunction(BackupEntry previous, BackupEntry current)
+    public static List<Difference> FromBackup(BackupEntry previous, BackupEntry current)
     {
-        return Generate(previous.References[0], current.References[0]);
+        Tree previousTree = new(previous.References);
+        Tree currentTree = new(current.References);
+
+        List<Difference> output = [];
+        DiffTrees(output, previousTree, currentTree);
+
+        return output;
     }
 
-    public static List<Difference> Generate(ObjectReference previous, ObjectReference current)
+    public static List<Difference> FromReference(ObjectReference previous, ObjectReference current)
     {
         List<Difference> output = [];
 
@@ -56,61 +62,62 @@ public static class DifferenceGenerator
                 break;
 
             case ObjectFormat.TREE:
-                DiffTrees(output, previous, current);
+                DiffTrees(output, Database.ReadTree(previous), Database.ReadTree(current));
                 break;
         }
     }
 
-    private static void DiffTrees(List<Difference> output, ObjectReference previous, ObjectReference current)
+    private static void DiffTrees(List<Difference> output, Tree previousTree, Tree currentTree)
     {
-        Tree previousTree = Database.ReadTree(previous);
-        Tree currentTree = Database.ReadTree(current);
-
         previousTree.PrependRefernces();
         currentTree.PrependRefernces();
 
-        Dictionary<string, ObjectReference> previousReferences = previousTree.References
-            .ToDictionary(reference => reference.Name);
+        List<ObjectReference> previousReferences = previousTree.References.ToList();
+        List<ObjectReference> currentReferences = currentTree.References.ToList();
 
-        Dictionary<string, ObjectReference> currentReferences = currentTree.References
-            .ToDictionary(reference => reference.Name);
+        Dictionary<string, ObjectReference> previousByName = previousReferences.ToDictionary(r => r.Name);
+        HashSet<ObjectReference> matchedPrevious = [];
+        HashSet<ObjectReference> matchedCurrent = [];
 
-        HashSet<string> matchedNames = [];
-
-        foreach (ObjectReference currentReference in currentTree.References)
+        // First pass: match by exact name
+        foreach (ObjectReference current in currentReferences)
         {
-            if (previousReferences.TryGetValue(currentReference.Name, out ObjectReference? previousReference))
+            if (previousByName.TryGetValue(current.Name, out ObjectReference? previous))
             {
-                GenerateInternal(output, currentReference, previousReference);
-                matchedNames.Add(currentReference.Name);
+                GenerateInternal(output, previous, current);
+                matchedPrevious.Add(previous);
+                matchedCurrent.Add(current);
                 continue;
             }
 
-            if (
-                previousTree.TryGetReferenceByPointer(currentReference.Pointer, out ObjectReference? renamedReference) &&
-                !matchedNames.Contains(renamedReference!.Name)
-            )
-            {
-                GenerateInternal(output, currentReference, renamedReference);
-                matchedNames.Add(renamedReference.Name);
-                continue;
-            }
+            // No name match: try to detect rename by content hash
+            List<ObjectReference> candidates = previousReferences
+                .Where(p => p.Pointer.Equals(current.Pointer) && !matchedPrevious.Contains(p))
+                .ToList();
 
-            output.Add(Difference.Addition(currentReference));
+            if (candidates.Count == 1)
+            {
+                // Unique candidate -> safe to treat as rename
+                ObjectReference renamed = candidates[0];
+                GenerateInternal(output, renamed, current);
+                matchedPrevious.Add(renamed);
+                matchedCurrent.Add(current);
+            }
+            else
+            {
+                // Ambiguous or no candidate -> treat current as new file
+                output.Add(Difference.Addition(current));
+                matchedCurrent.Add(current);
+            }
         }
 
-        foreach (ObjectReference previousReference in previousTree.References)
+        // Second pass: any unmatched previous reference is a removal
+        foreach (ObjectReference previous in previousReferences)
         {
-            if (matchedNames.Contains(previousReference.Name))
+            if (matchedPrevious.Contains(previous))
                 continue;
 
-            if (currentReferences.ContainsKey(previousReference.Name))
-                continue;
-
-            if (currentTree.TryGetReferenceByPointer(previousReference.Pointer, out _))
-                continue;
-
-            output.Add(Difference.Removal(previousReference));
+            output.Add(Difference.Removal(previous));
         }
     }
 }

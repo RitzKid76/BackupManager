@@ -53,9 +53,7 @@ public class List_Command : ICommand
             output.AppendLine();
             output.AppendLine(new string('-', 80));
 
-            output.AppendLine($"|   + sampleAddition.txt");
-            output.AppendLine($"|   ~ sampleChange.txt");
-            output.AppendLine($"|   X sampleRemoval.txt");
+            output.AppendLine(backup.GetDiffString());
         }
 
         Logger.Log(output.ToString());
