@@ -18,6 +18,12 @@ public class Difference_Command : ICommand
             return true;
         }
 
+        if (backups.Count < 2)
+        {
+            Logger.Log("need at least 2 backups to diff");
+            return true;
+        }
+
         List<string> args = argSet.GetArguments();
 
         BackupEntry? previous = null;
@@ -39,8 +45,15 @@ public class Difference_Command : ICommand
         if (previous is null)
             return true;
 
-        List<Difference> differences = DifferenceGenerator.FromBackup(previous, current!);
-        Logger.Log(differences);
+        int previousIndex = backups.IndexOf(previous);
+        int currentIndex = backups.IndexOf(current!);
+
+        List<Difference> differences = currentIndex == previousIndex - 1
+            ? current!.Differences // we store a cached diff already using the previous
+            : DifferenceGenerator.FromBackup(previous, current!);
+
+        foreach (Difference difference in differences)
+            Logger.Log(difference.DiffString());
 
         return true;
     }

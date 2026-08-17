@@ -28,7 +28,11 @@ public static class DifferenceGenerator
     private static void GenerateInternal(List<Difference> output, ObjectReference previous, ObjectReference current)
     {
         if (previous.Format != current.Format)
-            throw new ObjectFormatMismatchException(previous.Format, current.Format);
+        {
+            RemoveRecursive(output, previous);
+            AddRecursive(output, current);
+            return;
+        }
 
         if (previous.Pointer.Equals(current.Pointer))
         {
@@ -38,9 +42,8 @@ public static class DifferenceGenerator
 
         if (previous.Name != current.Name)
         {
-            output.Add(Difference.Removal(previous));
-            output.Add(Difference.Addition(current));
-
+            RemoveRecursive(output, previous);
+            AddRecursive(output, current);
             return;
         }
 
@@ -49,8 +52,19 @@ public static class DifferenceGenerator
 
     private static void HandleRename(List<Difference> output, ObjectReference previous, ObjectReference current)
     {
-        if (previous.Name != current.Name)
-            output.Add(Difference.Rename(previous, current));
+        if (previous.Name == current.Name)
+            return;
+
+        if (previous.Format == ObjectFormat.TREE)
+        {
+            Tree previousTree = Database.ReadTree(previous);
+            Tree currentTree = Database.ReadTree(current);
+
+            DiffTrees(output, previousTree, currentTree);
+            return;
+        }
+
+        output.Add(Difference.Rename(previous, current));
     }
 
     private static void HandleChange(List<Difference> output, ObjectReference previous, ObjectReference current)
@@ -67,6 +81,38 @@ public static class DifferenceGenerator
         }
     }
 
+    private static void AddRecursive(List<Difference> output, ObjectReference reference)
+    {
+        if (reference.Format == ObjectFormat.TREE)
+        {
+            Tree tree = Database.ReadTree(reference);
+            tree.PrependRefernces();
+
+            foreach (ObjectReference child in tree.References)
+                AddRecursive(output, child);
+
+            return;
+        }
+
+        output.Add(Difference.Addition(reference));
+    }
+
+    private static void RemoveRecursive(List<Difference> output, ObjectReference reference)
+    {
+        if (reference.Format == ObjectFormat.TREE)
+        {
+            Tree tree = Database.ReadTree(reference);
+            tree.PrependRefernces();
+
+            foreach (ObjectReference child in tree.References)
+                RemoveRecursive(output, child);
+
+            return;
+        }
+
+        output.Add(Difference.Removal(reference));
+    }
+
     private static void DiffTrees(List<Difference> output, Tree previousTree, Tree currentTree)
     {
         previousTree.PrependRefernces();
@@ -79,7 +125,6 @@ public static class DifferenceGenerator
         HashSet<ObjectReference> matchedPrevious = [];
         HashSet<ObjectReference> matchedCurrent = [];
 
-        // First pass: match by exact name
         foreach (ObjectReference current in currentReferences)
         {
             if (previousByName.TryGetValue(current.Name, out ObjectReference? previous))
@@ -90,34 +135,32 @@ public static class DifferenceGenerator
                 continue;
             }
 
-            // No name match: try to detect rename by content hash
             List<ObjectReference> candidates = previousReferences
                 .Where(p => p.Pointer.Equals(current.Pointer) && !matchedPrevious.Contains(p))
                 .ToList();
 
             if (candidates.Count == 1)
             {
-                // Unique candidate -> safe to treat as rename
                 ObjectReference renamed = candidates[0];
+
                 GenerateInternal(output, renamed, current);
+
                 matchedPrevious.Add(renamed);
                 matchedCurrent.Add(current);
             }
             else
             {
-                // Ambiguous or no candidate -> treat current as new file
-                output.Add(Difference.Addition(current));
+                AddRecursive(output, current);
                 matchedCurrent.Add(current);
             }
         }
 
-        // Second pass: any unmatched previous reference is a removal
         foreach (ObjectReference previous in previousReferences)
         {
             if (matchedPrevious.Contains(previous))
                 continue;
 
-            output.Add(Difference.Removal(previous));
+            RemoveRecursive(output, previous);
         }
     }
 }
