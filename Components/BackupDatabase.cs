@@ -121,7 +121,7 @@ public static class BackupDatabase
     public static IEnumerable<BackupEntry> GetBackups() =>
         backupsByName.Values.OrderByDescending(b => b.CreationTime);
 
-    public static bool Restore(string backupName)
+    public static bool Restore(string backupName, List<string> paths)
     {
         if (!TryGetBackup(backupName, out BackupEntry? backup))
             return false;
@@ -133,7 +133,7 @@ public static class BackupDatabase
 
         TrackBackup(latestState);
         // using latest as previous to get changes towards restore point
-        List<Difference> changesSinceBackup = DifferenceGenerator.FromBackup(latestState, backup!);
+        List<Difference> changesSinceBackup = DifferenceGenerator.FromBackup(latestState, backup!, paths);
 
         if (changesSinceBackup.Count == 0)
         {

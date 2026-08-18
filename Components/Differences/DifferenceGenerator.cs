@@ -5,7 +5,7 @@ namespace Backup.Components.Differences;
 
 public static class DifferenceGenerator
 {
-    public static List<Difference> FromBackup(BackupEntry previous, BackupEntry current)
+    public static List<Difference> FromBackup(BackupEntry previous, BackupEntry current, List<string>? paths = null)
     {
         Tree previousTree = new(previous.References);
         Tree currentTree = new(current.References);
@@ -13,16 +13,16 @@ public static class DifferenceGenerator
         List<Difference> output = [];
         DiffTrees(output, previousTree, currentTree);
 
-        return output;
+        return Filter(output, paths ?? []);
     }
 
-    public static List<Difference> FromReference(ObjectReference previous, ObjectReference current)
+    public static List<Difference> FromReference(ObjectReference previous, ObjectReference current, List<string> paths)
     {
         List<Difference> output = [];
 
         GenerateInternal(output, previous, current);
 
-        return output;
+        return Filter(output, paths);
     }
 
     private static void GenerateInternal(List<Difference> output, ObjectReference previous, ObjectReference current)
@@ -157,5 +157,38 @@ public static class DifferenceGenerator
         foreach (ObjectReference previous in previousReferences)
             if (!matchedPrevious.Contains(previous))
                 RemoveRecursive(output, previous);
+    }
+
+    private static List<Difference> Filter(List<Difference> differences, List<string> paths)
+    {
+        if (paths.Count == 0)
+            return differences;
+
+        return differences
+            .Where(difference =>
+                (difference.Previous is not null && MatchesAnyPath(difference.Previous.Name, paths)) ||
+                (difference.Current is not null && MatchesAnyPath(difference.Current.Name, paths)))
+            .ToList();
+    }
+
+    private static bool MatchesAnyPath(string name, List<string> paths)
+    {
+        foreach (string path in paths)
+            if (MatchesPath(name, path))
+                return true;
+
+        return false;
+    }
+
+    private static bool MatchesPath(string path, string pattern)
+    {
+        path = path.Replace('/', '\\');
+        pattern = pattern.Replace('/', '\\');
+
+        if (Glob.IsGlob(pattern))
+            return Glob.Matches(path, pattern);
+
+        return path.Equals(pattern, StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith(pattern + '\\', StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -31,7 +31,16 @@ public static class BackupController
                 return;
 
             string[] args = Regex.Matches(input, tokenPattern)
-                .Select(m => m.Value)
+                .Select(m =>
+                {
+                    if (m.Groups[1].Success)
+                        return m.Groups[1].Value;
+
+                    if (m.Groups[2].Success)
+                        return m.Groups[2].Value;
+
+                    return m.Value;
+                })
                 .ToArray();
 
             CommandExecutor.Execute(args);
