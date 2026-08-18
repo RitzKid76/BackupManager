@@ -9,26 +9,17 @@ public class Restore_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
+        List<string> args = argSet.GetArguments();
+        if (args.Count == 0)
+            return false;
+
         if (argSet.HasFlag("v"))
             Logger.EnableInfo();
 
-        List<string> args = argSet.GetArguments();
-        if (args.Count > 0)
-        {
-            string backupName = args[0];
+        string backupName = args[0];
 
-            if (!BackupDatabase.Restore(backupName))
-            {
-                Logger.Log($"couldn't find backup '{backupName}'");
-                return true;
-            }
-        }
-
-        if (!BackupDatabase.RestoreLatest())
-        {
-            Logger.Log("no backups found");
-            return true;
-        }
+        if (!BackupDatabase.Restore(backupName))
+            Logger.Log($"couldn't find backup '{backupName}'");
 
         Logger.DisableInfo();
         return true;
@@ -36,6 +27,6 @@ public class Restore_Command : ICommand
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("restores the files stored in a backup to their original location\nthis will override any existing contents with the contents stored in the backup")
-        .Parameter("backup_name", "the name of the backup to restore to. defaults to the latest backup")
+        .Parameter("backup_name", "the name of the backup to restore to", true)
         .Flag("v", "logs all actions to show progress");
 }

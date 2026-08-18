@@ -22,8 +22,7 @@ public static class BackupController
 
         while (true)
         {
-            Console.Write("> ");
-            string? input = Console.ReadLine();
+            string? input = Logger.Prompt(">");
 
             if (input is null)
                 continue;

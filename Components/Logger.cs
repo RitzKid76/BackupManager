@@ -46,4 +46,16 @@ public static class Logger
         foreach (object input in inputs)
             Log(input);
     }
+
+    public static string? Prompt(string prompt)
+    {
+        LogPartial($"{prompt} ");
+        return Console.ReadLine();
+    }
+
+    public static bool Confirm(string prompt)
+    {
+        string? answer = Prompt($"{prompt} (y/N):");
+        return answer == "y" || answer == "yes";
+    }
 }

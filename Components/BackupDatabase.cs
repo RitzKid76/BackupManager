@@ -1,6 +1,6 @@
+using Backup.Components.Differences;
 using Backup.Configs;
 using Backup.ObjectDatabase;
-using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.Components;
 
@@ -10,7 +10,7 @@ public static class BackupDatabase
     private static Dictionary<int, BackupEntry> backupsByIndex = [];
     private static Dictionary<string, int> indexMap = [];
 
-    private static readonly Queue<ObjectReference> restoreQueue = [];
+    private static readonly Queue<Difference> restoreQueue = [];
 
     static BackupDatabase() =>
         PopulateIndexes();
@@ -126,56 +126,47 @@ public static class BackupDatabase
         if (!TryGetBackup(backupName, out BackupEntry? backup))
             return false;
 
-        RestoreReferences(backup!.References);
-        return true;
-    }
+        Logger.Log("preparing restore...");
 
-    public static bool RestoreLatest()
-    {
-        int backupCount = Count();
-        if (backupCount == 0)
-            return false;
+        string latestStateName = LatestStateName(backupName);
+        BackupEntry latestState = Generate(latestStateName, true);
 
-        TryGetBackup(0, out BackupEntry? backup);
+        TrackBackup(latestState);
+        // using latest as previous to get changes towards restore point
+        List<Difference> changesSinceBackup = DifferenceGenerator.FromBackup(latestState, backup!);
 
-        RestoreReferences(backup!.References);
-        return true;
-    }
-
-    private static void EnqueueTree(Tree tree)
-    {
-        tree.PrependRefernces();
-
-        foreach (ObjectReference reference in tree.References)
-            restoreQueue.Enqueue(reference);
-    }
-
-    private static void RestoreReferences(List<ObjectReference> references)
-    {
-        foreach (ObjectReference reference in references)
-            restoreQueue.Enqueue(reference);
-
-        while (restoreQueue.TryDequeue(out ObjectReference? reference))
+        if (changesSinceBackup.Count == 0)
         {
-            switch (reference.Format)
-            {
-                case ObjectFormat.TREE:
-                    HandleTreeRollback(reference);
-                    break;
-                case ObjectFormat.BLOB:
-                    Database.RestoreFile(reference);
-                    break;
-            }
+            Delete(latestState, true);
+
+            Logger.Log("no changes to restore.");
+            return true;
         }
+
+        foreach (Difference change in changesSinceBackup)
+            Logger.Log(change.DiffString());
+
+        bool confirmation = Logger.Confirm($"the changes above will be applied on restore. your current state has been saved as '{latestStateName}'\nare you sure you want to restore to backup '{backupName}'?");
+        if (!confirmation)
+        {
+            Delete(latestState, true);
+            return true;
+        }
+
+        RestoreDifferences(changesSinceBackup);
+        return true;
     }
 
-    private static void HandleTreeRollback(ObjectReference treeReference)
+    private static void RestoreDifferences(List<Difference> differences)
     {
-        Tree tree = Database.ReadTree(treeReference);
-        EnqueueTree(tree);
+        foreach (Difference difference in differences)
+            restoreQueue.Enqueue(difference);
+
+        while (restoreQueue.TryDequeue(out Difference? difference))
+            difference.Apply();
     }
 
-    public static void Generate(string? backupName = null, bool force = false)
+    public static BackupEntry Generate(string? backupName = null, bool force = false)
     {
         if (
             backupName is not null &&
@@ -184,7 +175,7 @@ public static class BackupDatabase
         ) throw new BackupAlreadyExistsException(backupName);
 
         List<string> paths = PathLoader.Load();
-        BackupEntry backup = new(backupName ?? BackupName());
+        BackupEntry backup = new(backupName ?? DefaultName());
 
         foreach (string path in paths)
         {
@@ -194,11 +185,12 @@ public static class BackupDatabase
         }
 
         if (backup.References.Count == 0)
-            return;
+            return backup;
 
         TrackBackup(backup);
 
         Database.WriteBackup(backup);
+        return backup;
     }
 
     public static bool Delete(string backupName, bool force = false)
@@ -214,10 +206,8 @@ public static class BackupDatabase
     {
         if (!force)
         {
-            Console.Write($"are you sure you want to delete backup '{backup.Name}'? (y/N): ");
-
-            string? answer = Console.ReadLine();
-            if (answer != "y" && answer != "yes")
+            bool confirmation = Logger.Confirm($"are you sure you want to delete backup '{backup.Name}'?");
+            if (!confirmation)
                 return true;
         }
 
@@ -242,6 +232,9 @@ public static class BackupDatabase
         return true;
     }
 
-    private static string BackupName() =>
+    private static string DefaultName() =>
         DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+
+    private static string LatestStateName(string restoring) =>
+        $"{DefaultName()}_STATE_BEFORE_RESTORE_TO_{restoring}";
 }

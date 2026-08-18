@@ -99,6 +99,23 @@ public class Difference
         return output.ToString();
     }
 
+    public void Apply()
+    {
+        switch (Type)
+        {
+            case DifferenceType.ADDITION:
+            case DifferenceType.CHANGE:
+                Database.RestoreFile(Current!);
+                break;
+            case DifferenceType.REMOVAL:
+                File.Delete(Previous!.Name);
+                break;
+            case DifferenceType.RENAME:
+                File.Move(Previous!.Name, Current!.Name);
+                break;
+        }
+    }
+
     public override string ToString()
     {
         StringBuilder output = new();
