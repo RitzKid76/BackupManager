@@ -29,8 +29,16 @@ public static class Logger
 
     public static void Log(params object[] inputs)
     {
+        if (inputs.Length == 1)
+        {
+            Console.WriteLine(inputs[0]);
+            return;
+        }
+
         foreach (object input in inputs)
-            Console.WriteLine(input);
+            Console.Write($"{input}, ");
+
+        Console.WriteLine();
     }
 
     public static void Log(ICollection inputs)

@@ -1,4 +1,5 @@
 using System.Text;
+using Backup.Components;
 using Backup.Components.Differences;
 
 namespace Backup.ObjectDatabase;
@@ -24,9 +25,6 @@ public class BackupEntry
     public void AddReference(ObjectReference reference) =>
         References.Add(reference);
 
-    public void AddDifference(Difference difference) =>
-        Differences.Add(difference);
-
     public static BackupEntry Parse(string name, string[] contents)
     {
         string creationTimeString = contents[0];
@@ -42,10 +40,24 @@ public class BackupEntry
                 continue;
             }
 
-            output.AddDifference(Difference.Parse(line));
+            output.Differences.Add(Difference.Parse(line));
         }
 
         return output;
+    }
+
+    public void RegenerateDifference()
+    {
+        if (BackupDatabase.Count() == 0)
+            return;
+
+        Differences.Clear();
+        int ourIndex = BackupDatabase.IndexOf(Name);
+        if (!BackupDatabase.TryGetBackup(ourIndex + 1, out BackupEntry? previous))
+            return;
+
+        List<Difference> differences = DifferenceGenerator.FromBackup(previous!, this);
+        Differences.AddRange(differences);
     }
 
     public string GetDiffString()

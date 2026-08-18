@@ -22,8 +22,7 @@ public static class GarbageCollector
 
     private static void SkipExistingBackupHashes()
     {
-        List<BackupEntry> backups = BackupDatabase.GetBackups();
-        foreach (BackupEntry backup in backups)
+        foreach (BackupEntry backup in BackupDatabase.GetBackups())
         {
             foreach (ObjectReference reference in backup.References)
                 SkipReferenceHashes(reference);

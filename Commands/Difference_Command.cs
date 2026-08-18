@@ -11,14 +11,14 @@ public class Difference_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        List<BackupEntry> backups = BackupDatabase.GetBackups();
-        if (backups.Count == 0)
+        int backupCount = BackupDatabase.Count();
+        if (backupCount == 0)
         {
             Logger.Log("no backups found");
             return true;
         }
 
-        if (backups.Count < 2)
+        if (backupCount < 2)
         {
             Logger.Log("need at least 2 backups to diff");
             return true;
@@ -32,21 +32,21 @@ public class Difference_Command : ICommand
         switch (args.Count)
         {
             case 2:
-                (previous, current) = HandleBoth(args[0], args[1]);
+                (previous, current) = (ExtractBackup(args[0]), ExtractBackup(args[1]));
                 break;
             case 1:
-                (previous, current) = HandleOne(args[0], backups);
+                (previous, current) = (ExtractBackup(args[0]), BackupDatabase.GetBackup(0));
                 break;
             case 0:
-                (previous, current) = (backups[1], backups[0]);
+                (previous, current) = (BackupDatabase.GetBackup(1), BackupDatabase.GetBackup(0));
                 break;
         }
 
         if (previous is null)
             return true;
 
-        int previousIndex = backups.IndexOf(previous);
-        int currentIndex = backups.IndexOf(current!);
+        int previousIndex = BackupDatabase.IndexOf(previous.Name);
+        int currentIndex = BackupDatabase.IndexOf(current!.Name);
 
         List<Difference> differences = currentIndex == previousIndex - 1
             ? current!.Differences // we store a cached diff already using the previous
@@ -58,32 +58,15 @@ public class Difference_Command : ICommand
         return true;
     }
 
-    private static (BackupEntry?, BackupEntry?) HandleBoth(string previous, string current)
+    private static BackupEntry? ExtractBackup(string backupName)
     {
-        if (!BackupDatabase.TryGetBackup(previous, out BackupEntry? previousBackup))
+        if (!BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup))
         {
-            Logger.Log($"couldn't find backup '{previous}'");
-            return (null, null);
+            Logger.Log($"couldn't find backup '{backupName}'");
+            return null;
         }
 
-        if (!BackupDatabase.TryGetBackup(current, out BackupEntry? currentBackup))
-        {
-            Logger.Log($"couldn't find backup '{current}'");
-            return (null, null);
-        }
-
-        return (previousBackup, currentBackup);
-    }
-
-    private static (BackupEntry?, BackupEntry?) HandleOne(string previous, List<BackupEntry> backups)
-    {
-        if (!BackupDatabase.TryGetBackup(previous, out BackupEntry? previousBackup))
-        {
-            Logger.Log($"couldn't find backup '{previous}'");
-            return (null, null);
-        }
-
-        return (previousBackup, backups[0]);
+        return backup;
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax

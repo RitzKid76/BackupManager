@@ -26,9 +26,7 @@ public class List_Command : ICommand
             PrintAll(backup!, true);
         }
 
-        List<BackupEntry> backups = BackupDatabase.GetBackups();
-
-        foreach (BackupEntry backup in backups)
+        foreach (BackupEntry backup in BackupDatabase.GetBackups())
             if (argSet.HasFlag("l"))
                 PrintAll(backup);
             else
