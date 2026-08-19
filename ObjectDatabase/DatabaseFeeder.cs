@@ -5,15 +5,18 @@ namespace Backup.ObjectDatabase;
 
 public static class DatabaseFeeder
 {
-    public static ObjectReference? Feed(string path, bool ignorePrefix = false)
+    public static ObjectReference? Feed(string path, HashSet<string> blacklist, bool ignorePrefix = false)
     {
         try
         {
+            if (blacklist.Contains(path))
+                return null;
+
             FileAttributes attribute = File.GetAttributes(path);
             if (!attribute.HasFlag(FileAttributes.Directory))
                 return FeedFile(path, ignorePrefix);
 
-            return FeedDirectory(path, ignorePrefix);
+            return FeedDirectory(path, blacklist, ignorePrefix);
         }
         catch (Exception e)
             when (e
@@ -28,7 +31,7 @@ public static class DatabaseFeeder
     private static ObjectReference? FeedFile(string path, bool ignorePrefix) =>
         Database.WriteFile(new(path), !ignorePrefix);
 
-    private static ObjectReference? FeedDirectory(string path, bool ignorePrefix)
+    private static ObjectReference? FeedDirectory(string path, HashSet<string> blacklist, bool ignorePrefix)
     {
         string name = ignorePrefix
             ? path.ExtractPathName()
@@ -38,7 +41,7 @@ public static class DatabaseFeeder
 
         foreach (string dir in Directory.EnumerateDirectories(path))
         {
-            ObjectReference? reference = Feed(dir, true);
+            ObjectReference? reference = Feed(dir, blacklist, true);
             if (reference is not null)
                 tree.AddReference(reference);
         }

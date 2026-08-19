@@ -6,7 +6,7 @@ public static class PathLoader
 {
     private const string PATHS = "paths.yml";
 
-    public static List<string> Load()
+    public static List<LoadedPath> Load()
     {
         Dictionary<string, object> data = ReadPathConfig();
         if (data is null)
@@ -26,7 +26,7 @@ public static class PathLoader
         return deserializer.Deserialize<Dictionary<string, object>>(contents);
     }
 
-    private static IEnumerable<string> FlattenPaths(string basePath, object? node)
+    private static IEnumerable<LoadedPath> FlattenPaths(string basePath, object? node)
     {
         switch (node)
         {
@@ -35,7 +35,7 @@ public static class PathLoader
                 {
                     string childBase = Path.Combine(basePath, entry.Key.ToString()!);
 
-                    foreach (string path in FlattenPaths(childBase, entry.Value))
+                    foreach (LoadedPath path in FlattenPaths(childBase, entry.Value))
                         yield return path;
                 }
 
@@ -44,14 +44,24 @@ public static class PathLoader
             case List<object> list:
                 foreach (object item in list)
                 {
-                    foreach (string path in FlattenPaths(basePath, item))
+                    foreach (LoadedPath path in FlattenPaths(basePath, item))
                         yield return path;
                 }
 
                 break;
 
             case string leaf:
-                yield return Path.Combine(basePath, leaf);
+                bool blacklisted = leaf.StartsWith('^');
+                string leafPath = blacklisted
+                    ? leaf[1..]
+                    : leaf;
+
+                leafPath = Path.Combine(basePath, leafPath);
+
+                yield return new(
+                    leafPath,
+                    blacklisted
+                );
                 break;
         }
     }
