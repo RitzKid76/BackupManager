@@ -1,10 +1,16 @@
-using System.Security.Cryptography;
+using Blake3;
+using System.Buffers;
 using System.Text;
 
 namespace Backup.ObjectDatabase.Hashing;
 
 public class Hash : IEquatable<Hash>
 {
+    private const int HashLength = 20;
+    private const int BufferSize = 1024 * 1024;
+
+    private static readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Shared;
+
     private readonly byte[] hash;
 
     private Hash(byte[] hash) =>
@@ -12,21 +18,31 @@ public class Hash : IEquatable<Hash>
 
     public static Hash? Create(FileInfo file)
     {
+        byte[] buffer = bufferPool.Rent(BufferSize);
+
         try
         {
-            using SHA1 sha1 = SHA1.Create();
-            using FileStream stream = file.Open(FileMode.Open);
+            using FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            byte[] hash = sha1.ComputeHash(stream);
+            using Hasher hasher = Hasher.New();
+
+            int bytesRead;
+            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                hasher.Update(buffer.AsSpan(0, bytesRead));
+
+            byte[] hash = new byte[HashLength];
+            hasher.Finalize(hash);
+
             return new(hash);
         }
         catch (Exception e)
-            when (e
-                is IOException
-                or UnauthorizedAccessException
-            )
+            when (e is IOException or UnauthorizedAccessException)
         {
             return null;
+        }
+        finally
+        {
+            bufferPool.Return(buffer);
         }
     }
 
@@ -34,7 +50,12 @@ public class Hash : IEquatable<Hash>
     {
         byte[] bytes = Encoding.UTF8.GetBytes(content);
 
-        byte[] hash = SHA1.HashData(bytes);
+        using Hasher hasher = Hasher.New();
+        hasher.Update(bytes);
+
+        byte[] hash = new byte[HashLength];
+        hasher.Finalize(hash);
+
         return new(hash);
     }
 
