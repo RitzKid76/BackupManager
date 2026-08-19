@@ -33,10 +33,13 @@ public static class PathLoader
             case Dictionary<object, object> map:
                 foreach (KeyValuePair<object, object> entry in map)
                 {
-                    string childBase = Path.Combine(basePath, entry.Key.ToString()!);
+                    string path = Path.Combine(basePath, entry.Key.ToString()!);
 
-                    foreach (LoadedPath path in FlattenPaths(childBase, entry.Value))
-                        yield return path;
+                    if (ContainsBlacklist(entry.Value))
+                        yield return new(path, false);
+
+                    foreach (LoadedPath child in FlattenPaths(path, entry.Value))
+                        yield return child;
                 }
 
                 break;
@@ -56,13 +59,23 @@ public static class PathLoader
                     ? leaf[1..]
                     : leaf;
 
-                leafPath = Path.Combine(basePath, leafPath);
-
                 yield return new(
-                    leafPath,
+                    Path.Combine(basePath, leafPath),
                     blacklisted
                 );
+
                 break;
         }
     }
+
+    private static bool ContainsBlacklist(object? node) => node switch
+    {
+        List<object> list => list.Any(item =>
+            item is string value && value.StartsWith('^')),
+
+        Dictionary<object, object> map => map.Any(entry =>
+            ContainsBlacklist(entry.Value)),
+
+        _ => false
+    };
 }
