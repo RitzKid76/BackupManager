@@ -5,41 +5,61 @@ namespace Backup.Configs;
 public static class PathLoader
 {
     private const string PATHS = "paths.yml";
+    private const string BLACKLIST = "^";
 
-    public static List<LoadedPath> Load()
+    public static (IEnumerable<string>, IEnumerable<BlacklistEntry>) Load()
     {
         Dictionary<string, object> data = ReadPathConfig();
-        if (data is null)
-            return [];
 
-        return data
-            .SelectMany(drive => FlattenPaths($"{drive.Key}:\\", drive.Value))
-            .ToList();
+        HashSet<string> paths = new(StringComparer.OrdinalIgnoreCase);
+        HashSet<BlacklistEntry> blacklist = [];
+
+        foreach (KeyValuePair<string, object> entry in data)
+        {
+            if (entry.Key == BLACKLIST)
+            {
+                LoadBlacklist(blacklist, string.Empty, entry.Value);
+                continue;
+            }
+
+            string basePath = $"{entry.Key}:\\";
+            FlattenPaths(basePath, entry.Value, paths, blacklist);
+        }
+
+        return (paths, blacklist);
     }
 
     private static Dictionary<string, object> ReadPathConfig()
     {
         IDeserializer deserializer = new DeserializerBuilder().Build();
-
         string contents = File.ReadAllText(PATHS);
 
         return deserializer.Deserialize<Dictionary<string, object>>(contents);
     }
 
-    private static IEnumerable<LoadedPath> FlattenPaths(string basePath, object? node)
+    private static void FlattenPaths(string basePath, object? node, HashSet<string> paths, HashSet<BlacklistEntry> blacklist)
     {
         switch (node)
         {
             case Dictionary<object, object> map:
+                bool hasBlacklist = map.ContainsKey(BLACKLIST);
+
+                if (hasBlacklist)
+                {
+                    LoadBlacklist(blacklist, basePath, map[BLACKLIST]);
+                    paths.Add(basePath);
+                }
+
                 foreach (KeyValuePair<object, object> entry in map)
                 {
-                    string path = Path.Combine(basePath, entry.Key.ToString()!);
+                    string key = entry.Key.ToString()!;
 
-                    if (ContainsBlacklist(entry.Value))
-                        yield return new(path, false);
+                    if (key == BLACKLIST)
+                        continue;
 
-                    foreach (LoadedPath child in FlattenPaths(path, entry.Value))
-                        yield return child;
+                    string path = Path.Combine(basePath, key);
+
+                    FlattenPaths(path, entry.Value, paths, blacklist);
                 }
 
                 break;
@@ -47,35 +67,28 @@ public static class PathLoader
             case List<object> list:
                 foreach (object item in list)
                 {
-                    foreach (LoadedPath path in FlattenPaths(basePath, item))
-                        yield return path;
+                    FlattenPaths(
+                        basePath,
+                        item,
+                        paths,
+                        blacklist);
                 }
 
                 break;
 
             case string leaf:
-                bool blacklisted = leaf.StartsWith('^');
-                string leafPath = blacklisted
-                    ? leaf[1..]
-                    : leaf;
-
-                yield return new(
-                    Path.Combine(basePath, leafPath),
-                    blacklisted
-                );
-
+                paths.Add(Path.Combine(basePath, leaf));
                 break;
         }
     }
 
-    private static bool ContainsBlacklist(object? node) => node switch
+    private static void LoadBlacklist(HashSet<BlacklistEntry> blacklist, string scope, object? node)
     {
-        List<object> list => list.Any(item =>
-            item is string value && value.StartsWith('^')),
+        if (node is not List<object> list)
+            return;
 
-        Dictionary<object, object> map => map.Any(entry =>
-            ContainsBlacklist(entry.Value)),
-
-        _ => false
-    };
+        foreach (object item in list)
+            if (item is string pattern)
+                blacklist.Add(new(scope, pattern));
+    }
 }

@@ -174,20 +174,16 @@ public static class BackupDatabase
             TryGetBackup(backupName, out _)
         ) throw new BackupAlreadyExistsException(backupName);
 
-        List<LoadedPath> paths = PathLoader.Load();
-        HashSet<string> blacklist = paths
-            .Where(p => p.Blacklisted)
-            .Select(p => p.Path)
-            .ToHashSet();
+        (
+            IEnumerable<string> paths,
+            IEnumerable<BlacklistEntry> blacklist
+        ) = PathLoader.Load();
 
         BackupEntry backup = new(backupName ?? DefaultName());
 
-        foreach (LoadedPath path in paths)
+        foreach (string path in paths)
         {
-            if (path.Blacklisted)
-                continue;
-
-            ObjectReference? reference = DatabaseFeeder.Feed(path.Path, blacklist);
+            ObjectReference? reference = DatabaseFeeder.Feed(path, blacklist);
             if (reference is not null)
                 backup.AddReference(reference);
         }
