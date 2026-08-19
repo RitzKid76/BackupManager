@@ -8,6 +8,8 @@ namespace Backup.ObjectDatabase;
 
 public static class Database
 {
+    private const string COMPRESSED_META = "_c";
+
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
         Hash? hash = Hash.Create(file);
@@ -20,7 +22,9 @@ public static class Database
 
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
+        string hashString = hash.ToString();
+
+        (string databaseFolder, string databasePath) = GetDatabaseAddress(hashString);
         Logger.Info($"writing: {file.FullName}");
 
         if (File.Exists(databasePath))
@@ -29,7 +33,11 @@ public static class Database
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
-        output.MarkCompressed(isCompressed);
+        if (isCompressed)
+        {
+            MarkCompressed(hashString);
+            output.MarkCompressed();
+        }
 
         return output;
     }
@@ -39,7 +47,7 @@ public static class Database
         string data = tree.ToString();
         Hash hash = Hash.Create(data);
 
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(hash);
+        (string databaseFolder, string databasePath) = GetDatabaseAddress(hash.ToString());
 
         Directory.CreateDirectory(databaseFolder);
 
@@ -70,7 +78,7 @@ public static class Database
 
         string path = reference.Name;
 
-        (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
+        (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
         Logger.Info($"restoring: {path}");
 
         FileInfo file = new(databasePath);
@@ -88,7 +96,7 @@ public static class Database
         if (reference.Format != ObjectFormat.TREE)
             throw new ArgumentException($"Expected {typeof(Tree)} but found {reference.Format}");
 
-        (_, string databasePath) = GetDatabaseAddress(reference.Pointer);
+        (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
 
         string[] contents = File.ReadAllLines(databasePath);
         return Tree.Parse(reference.Name, contents);
@@ -128,13 +136,21 @@ public static class Database
 
     public static void Delete(Hash hash)
     {
-        Logger.Info($"deleting: {hash}");
+        string hashString = hash.ToString();
 
-        (string folder, string path) = GetDatabaseAddress(hash);
+        Logger.Info($"deleting: {hashString}");
+
+        (string folder, string path) = GetDatabaseAddress(hashString);
         File.Delete(path);
 
         if (!Directory.EnumerateFiles(folder).Any())
             Directory.Delete(folder);
+
+        (string compressedFolder, string compressedPath) = GetCompressedDatabaseAddress(hashString);
+        File.Delete(compressedPath);
+
+        if (!Directory.EnumerateFiles(compressedFolder).Any())
+            Directory.Delete(compressedFolder);
     }
 
     public static void DeleteBackup(BackupEntry backup)
@@ -145,8 +161,12 @@ public static class Database
         CleanupHandler.Run();
     }
 
-    private static (string, string) GetDatabaseAddress(Hash hash) =>
-        GetDatabaseAddress(hash.ToString());
+    public static bool IsBlobCompressed(string hashString)
+    {
+        (_, string databasePath) = GetCompressedDatabaseAddress(hashString);
+        return File.Exists(databasePath);
+    }
+
 
     private static (string, string) GetDatabaseAddress(string hashString)
     {
@@ -154,5 +174,21 @@ public static class Database
         string file = hashString[2..];
 
         return (folder, $"{folder}\\{file}");
+    }
+
+    private static (string, string) GetCompressedDatabaseAddress(string hashString)
+    {
+        string folder = $"{Config.DatabaseFolder}\\{COMPRESSED_META}\\{hashString[0..2]}";
+        string file = hashString[2..];
+
+        return (folder, $"{folder}\\{file}");
+    }
+
+    private static void MarkCompressed(string hashString)
+    {
+        (string folder, string path) = GetCompressedDatabaseAddress(hashString);
+
+        Directory.CreateDirectory(folder);
+        File.Create(path);
     }
 }

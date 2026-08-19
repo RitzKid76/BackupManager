@@ -9,7 +9,7 @@ public class ObjectReference
     public ObjectFormat Format { get; private set; }
     public Hash Pointer { get; private set; }
 
-    private bool compressed;
+    private bool isCompressed;
 
     public ObjectReference(string name, ObjectFormat format, Hash pointer)
     {
@@ -26,15 +26,7 @@ public class ObjectReference
             return false;
 
         char formatChar = contents[0];
-
-        char compressionChar = contents[1];
-        bool compressed = compressionChar == 'C';
-
-        int offset = compressed
-            ? 3
-            : 2;
-
-        contents = contents[offset..];
+        contents = contents[2..];
 
         string hashString = contents[0..40];
         string name = contents[41..];
@@ -45,25 +37,23 @@ public class ObjectReference
 
         Hash pointer = Hash.Parse(hashString);
 
-        output = new(name, format.Value, pointer);
-        output.MarkCompressed(compressed);
+        output = new(name, format.Value, pointer)
+        {
+            isCompressed = Database.IsBlobCompressed(hashString)
+        };
 
         return true;
     }
 
-    public void MarkCompressed(bool compressed) =>
-        this.compressed = compressed;
+    public void MarkCompressed() =>
+        isCompressed = true;
 
     public bool IsCompressed() =>
-        compressed;
-
-    private char? CompressionChar() => compressed
-        ? 'C'
-        : null;
+        isCompressed;
 
     public void PrependPath(string path) =>
         Name = $"{path}\\{Name}";
 
     public override string ToString() =>
-        $"{Format.GetFormatChar()}{CompressionChar()} {Pointer} {Name}";
+        $"{Format.GetFormatChar()} {Pointer} {Name}";
 }
