@@ -187,6 +187,8 @@ public static class BackupDatabase
         if (backup.References.Count == 0)
             return backup;
 
+        Logger.Log("finalizing...");
+
         TrackBackup(backup);
 
         Database.WriteBackup(backup);

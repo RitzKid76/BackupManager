@@ -39,6 +39,8 @@ public static class CleanupHandler
     {
         running = true;
 
+        Logger.Info("cleaning up...");
+
         Compressor.Run();
 
         if (Config.GarbageCollect)
