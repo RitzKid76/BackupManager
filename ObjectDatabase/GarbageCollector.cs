@@ -1,5 +1,4 @@
 using Backup.Components;
-using Backup.Components.Differences;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.ObjectTypes;
 
@@ -11,8 +10,11 @@ public static class GarbageCollector
 
     public static void Run()
     {
+        Logger.Info("garbage collecting...");
         toRemove.Clear();
 
+
+        Logger.Info("loading objects...");
         foreach (Hash hash in Database.GetAllPointers())
             toRemove.Add(hash);
 
@@ -26,13 +28,12 @@ public static class GarbageCollector
         {
             foreach (ObjectReference reference in backup.References)
                 SkipReferenceHashes(reference);
-            foreach (Difference difference in backup.Differences)
-                SkipDifferenceHashes(difference);
         }
     }
 
     private static void SkipReferenceHashes(ObjectReference reference)
     {
+        Logger.Info($"tracking: {reference.Pointer} {reference.Name}");
         toRemove.Remove(reference.Pointer);
 
         switch (reference.Format)
@@ -41,15 +42,6 @@ public static class GarbageCollector
                 SkipTree(reference);
                 break;
         }
-    }
-
-    private static void SkipDifferenceHashes(Difference difference)
-    {
-        if (difference.Current is not null)
-            toRemove.Remove(difference.Current.Pointer);
-
-        if (difference.Previous is not null)
-            toRemove.Remove(difference.Previous.Pointer);
     }
 
     private static void SkipTree(ObjectReference reference)

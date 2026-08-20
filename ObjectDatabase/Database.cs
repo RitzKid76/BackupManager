@@ -28,11 +28,11 @@ public static class Database
 
         if (File.Exists(databasePath))
         {
-            Logger.Info($"skipping: {file.FullName}");
+            Logger.Info($"skipping: {hash} {file.FullName}");
             return output;
         }
 
-        Logger.Info($"writing: {file.FullName}");
+        Logger.Info($"writing: {hash} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
