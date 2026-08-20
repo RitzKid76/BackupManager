@@ -25,11 +25,14 @@ public static class Database
         string hashString = hash.ToString();
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hashString);
-        Logger.Info($"writing: {file.FullName}");
 
         if (File.Exists(databasePath))
+        {
+            Logger.Info($"skipping: {file.FullName}");
             return output;
+        }
 
+        Logger.Info($"writing: {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
@@ -47,7 +50,12 @@ public static class Database
         string data = tree.ToString();
         Hash hash = Hash.Create(data);
 
+        ObjectReference output = new(tree.Name, ObjectFormat.TREE, hash);
+
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash.ToString());
+
+        if (File.Exists(databasePath))
+            return output;
 
         Directory.CreateDirectory(databaseFolder);
 
@@ -55,7 +63,7 @@ public static class Database
         using (StreamWriter stream = file.CreateText())
             stream.Write(data);
 
-        return new(tree.Name, ObjectFormat.TREE, hash);
+        return output;
     }
 
     public static void WriteBackup(BackupEntry backup)
@@ -121,6 +129,9 @@ public static class Database
         {
             string bucketName = bucket.ExtractPathName();
 
+            if (bucketName == COMPRESSED_META)
+                continue;
+
             string[] pointers = Directory.GetFiles(bucket);
             foreach (string pointer in pointers)
             {
@@ -143,13 +154,16 @@ public static class Database
         (string folder, string path) = GetDatabaseAddress(hashString);
         File.Delete(path);
 
-        if (!Directory.EnumerateFiles(folder).Any())
-            Directory.Delete(folder);
-
         (string compressedFolder, string compressedPath) = GetCompressedDatabaseAddress(hashString);
-        File.Delete(compressedPath);
+        if (File.Exists(compressedPath))
+            File.Delete(compressedPath);
 
-        if (!Directory.EnumerateFiles(compressedFolder).Any())
+        if (Directory.EnumerateFiles(folder).Any())
+            return;
+
+        Directory.Delete(folder);
+
+        if (Directory.Exists(compressedFolder))
             Directory.Delete(compressedFolder);
     }
 
