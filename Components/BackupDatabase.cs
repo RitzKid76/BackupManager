@@ -19,6 +19,8 @@ public static class BackupDatabase
     {
         List<BackupEntry> backups = [];
 
+        Directory.CreateDirectory(Config.BackupFolder);
+
         foreach (string path in Directory.GetFiles(Config.BackupFolder))
             backups.Add(Database.ReadBackup(path));
 
