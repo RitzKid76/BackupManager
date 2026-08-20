@@ -203,6 +203,6 @@ public static class Database
         (string folder, string path) = GetCompressedDatabaseAddress(hashString);
 
         Directory.CreateDirectory(folder);
-        File.Create(path);
+        File.Create(path).Dispose();
     }
 }
