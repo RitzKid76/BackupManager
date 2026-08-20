@@ -36,7 +36,10 @@ public class Hash : IEquatable<Hash>
             return new(hash);
         }
         catch (Exception e)
-            when (e is IOException or UnauthorizedAccessException)
+            when (e is
+                IOException or
+                UnauthorizedAccessException
+            )
         {
             return null;
         }
