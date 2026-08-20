@@ -32,7 +32,7 @@ public static class Database
             return output;
         }
 
-        Logger.Info($"writing: {hash} {file.FullName}");
+        Logger.Info($" writing: {hash} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
