@@ -39,46 +39,30 @@ public static class PathLoader
 
     private static void FlattenPaths(string basePath, object? node, HashSet<string> paths, HashSet<BlacklistEntry> blacklist)
     {
-        switch (node)
+        if (node is null)
         {
-            case Dictionary<object, object> map:
-                bool hasBlacklist = map.ContainsKey(BLACKLIST);
+            paths.Add(basePath);
+            return;
+        }
 
-                if (hasBlacklist)
-                {
-                    LoadBlacklist(blacklist, basePath, map[BLACKLIST]);
-                    paths.Add(basePath);
-                }
+        if (node is not Dictionary<object, object> map)
+            return;
 
-                foreach (KeyValuePair<object, object> entry in map)
-                {
-                    string key = entry.Key.ToString()!;
+        if (map.TryGetValue(BLACKLIST, out object? blacklistNode))
+        {
+            LoadBlacklist(blacklist, basePath, blacklistNode);
+            paths.Add(basePath);
+        }
 
-                    if (key == BLACKLIST)
-                        continue;
+        foreach (KeyValuePair<object, object> entry in map)
+        {
+            string key = entry.Key.ToString()!;
 
-                    string path = Path.Combine(basePath, key);
+            if (key == BLACKLIST)
+                continue;
 
-                    FlattenPaths(path, entry.Value, paths, blacklist);
-                }
-
-                break;
-
-            case List<object> list:
-                foreach (object item in list)
-                {
-                    FlattenPaths(
-                        basePath,
-                        item,
-                        paths,
-                        blacklist);
-                }
-
-                break;
-
-            case string leaf:
-                paths.Add(Path.Combine(basePath, leaf));
-                break;
+            string path = Path.Combine(basePath, key);
+            FlattenPaths(path, entry.Value, paths, blacklist);
         }
     }
 
