@@ -9,16 +9,16 @@ public static class Glob
         input = Normalize(input);
         glob = Normalize(glob);
 
-        string directory = Path.GetDirectoryName(input) ?? string.Empty;
+        string? directory = Path.GetDirectoryName(input);
+        if (string.IsNullOrEmpty(directory))
+            directory = ".";
+
         string fileName = Path.GetFileName(input);
 
         Matcher matcher = new();
-
         matcher.AddInclude(glob);
 
-        PatternMatchingResult result = matcher.Match(
-            directory,
-            fileName);
+        PatternMatchingResult result = matcher.Match(directory, fileName);
 
         return result.HasMatches;
     }
