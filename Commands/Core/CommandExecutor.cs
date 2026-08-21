@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using Backup.Components;
 using Backup.Commands.Arguments;
+using Backup.Configs;
 
 namespace Backup.Commands.Core;
 
@@ -49,9 +50,29 @@ public static class CommandExecutor
 
         ArgumentSet argSet = ArgumentSet.Create(args[1..]);
 
-        bool result = command!.Execute(argSet);
-        if (!result)
-            SendHelp(token);
+        try
+        {
+            bool result = command!.Execute(argSet);
+            if (!result)
+                SendHelp(token);
+        }
+        catch (Exception e)
+            when (e.GetBaseException() is DefaultStartupException)
+        {
+            Logger.Log("""
+            it was detected that this is the first time you have run the app, or your configuration files were missing
+            new config files have been generated for you
+            
+            be sure to update your configs and check out the README.md for more information
+            restart the app to acknowledge
+            """);
+            return;
+        }
+        catch (Exception e)
+        {
+            string exception = PrettyStacktrace.Get(e);
+            Logger.Log(exception);
+        }
     }
 
     public static void SendHelp(string? token = null)

@@ -4,8 +4,6 @@ namespace Backup.Configs;
 
 public static class Config
 {
-    private const string CONFIG_PATH = "config.json";
-
     public static string BackupFolder { get; private set; } = string.Empty;
     public static string DatabaseFolder { get; private set; } = string.Empty;
     public static string[] CompressionBuckets { get; private set; } = [];
@@ -16,7 +14,7 @@ public static class Config
 
     private static void LoadConfigJson()
     {
-        string json = File.ReadAllText(CONFIG_PATH);
+        string json = ConfigProxy.ReadConfig();
 
         JsonSerializerOptions options = new()
         {

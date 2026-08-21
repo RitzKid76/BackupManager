@@ -4,7 +4,6 @@ namespace Backup.Configs;
 
 public static class PathLoader
 {
-    private const string PATHS = "paths.yml";
     private const string BLACKLIST = "^";
 
     public static (IEnumerable<string>, IEnumerable<BlacklistEntry>) Load()
@@ -32,7 +31,7 @@ public static class PathLoader
     private static Dictionary<string, object> ReadPathConfig()
     {
         IDeserializer deserializer = new DeserializerBuilder().Build();
-        string contents = File.ReadAllText(PATHS);
+        string contents = ConfigProxy.ReadPaths();
 
         return deserializer.Deserialize<Dictionary<string, object>>(contents);
     }
