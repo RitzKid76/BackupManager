@@ -25,20 +25,31 @@ public static class Compressor
 
     private static void StashBucketTimes()
     {
-        foreach (string bucketString in Config.CompressionBuckets)
-            bucketTimes.Add(ParseBucket(bucketString));
+        LinkedList<long> bucketTimes = [];
 
-        if (bucketTimes.Count <= 1)
+        foreach (string bucketString in Config.CompressionBuckets)
+            bucketTimes.AddLast(ParseBucket(bucketString));
+
+        LinkedListNode<long>? first = bucketTimes.First;
+        if (first is null)
             return;
 
-        long previousTime = bucketTimes[0];
-        foreach (long time in bucketTimes[1..])
+        LinkedListNode<long>? current = first.Next;
+        while (current is not null)
         {
-            if (previousTime <= time)
+            long previousTime = current.Previous!.Value;
+            long currentTime = current.Value;
+
+            if (previousTime <= currentTime)
                 throw new InvalidCompressionBucketConfig();
 
-            previousTime = time;
+            current = current.Next;
         }
+
+        long spacer = first.Value * 2;
+        bucketTimes.AddFirst(spacer);
+
+        Compressor.bucketTimes.AddRange(bucketTimes);
     }
 
     private static long ParseBucket(string bucketString)
@@ -71,17 +82,23 @@ public static class Compressor
     {
         long timePassed = timeOfCompression - backup.CreationTime;
 
-        foreach (long bucket in bucketTimes)
-            if (timePassed >= bucket)
-            {
-                buckets.GetValueOrAdd(bucket, () => []).Add(backup.Name);
-                return;
-            }
+        for (int i = 0; i < bucketTimes.Count; i++)
+        {
+            long bucketTime = bucketTimes[i];
+            if (timePassed < bucketTimes[i])
+                continue;
+
+            Logger.Info($"{i} -> {backup.Name}");
+            buckets.GetValueOrAdd(bucketTime, () => []).Add(backup.Name);
+
+            return;
+        }
     }
 
     private static void TrimBuckets()
     {
-        foreach (List<string> bucket in buckets.Values)
+        //              dont touch the spacer bucket VVV
+        foreach (List<string> bucket in buckets.Values.Skip(1))
             if (bucket.Count > 1)
                 foreach (string extraBackup in bucket[1..])
                     BackupDatabase.Delete(extraBackup, true);
