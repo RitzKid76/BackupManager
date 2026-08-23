@@ -60,6 +60,7 @@ public static class Compressor
 
     private static void PopulateBuckets()
     {
+        buckets.Clear();
         long timeOfCompression = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         foreach (BackupEntry entry in BackupDatabase.GetBackups().Reverse())
