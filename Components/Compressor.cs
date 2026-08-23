@@ -62,7 +62,7 @@ public static class Compressor
     {
         long timeOfCompression = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        foreach (BackupEntry entry in BackupDatabase.GetBackups())
+        foreach (BackupEntry entry in BackupDatabase.GetBackups().Reverse())
             AddBackupToBucket(timeOfCompression, entry);
     }
 

@@ -122,7 +122,7 @@ The bucket entries must be ordered from the largest time period to the smallest.
 ]
 ```
 
-Every bucket can only hold **1** backup, but it will always keep the most recent that fits into that bucket. **A bucket for 0s is always present to hold the latest backups.** For clarity, let's walk through an example with the following backups and their ages:
+Every bucket can only hold **1** backup, but it will always keep the **oldest** backup that fits into that bucket. The reason we keep the oldest is so that the buckets keep filling as time progresses, but for clarity let's walk through an example with the following backups and their ages:
 
 ```properties
 A - 10m
@@ -137,19 +137,21 @@ I - 1d
 ```
 
 With the compression config above, assuming that buckets could hold infinite backups, they would fill as follows:
-|   0   |  1h   |  3h   |  6h   |  1d   |
-| :---: | :---: | :---: | :---: | :---: |
-|   A   |   C   |   D   |   E   |   I   |
-|   B   |       |       |   F   |       |
-|       |       |       |   G   |       |
-|       |       |       |   H   |       |
+|  1h   |  3h   |  6h   |  1d   |
+| :---: | :---: | :---: | :---: |
+|   C   |   D   |   H   |   I   |
+|       |       |   G   |       |
+|       |       |   F   |       |
+|       |       |   E   |       |
+
+Backups A and B do not populate any buckets, so they are both kept. This also of course means that if you never specify any buckets, none of your backups will be deleted.
 
 Backups will always fill the largest bucket that is less than their age. With the current example config, the kept backups will be the top row in the table: 
-|   0   |  1h   |  3h   |  6h   |  1d   |
-| :---: | :---: | :---: | :---: | :---: |
-|   A   |   C   |   D   |   E   |   I   |
+|  1h   |  3h   |  6h   |  1d   |
+| :---: | :---: | :---: | :---: |
+|   C   |   D   |   H   |   I   |
 
-This ensures that the most recent backups are prioritized while removing some redundant ones in the process
+This ensures that the **oldest** backups are prioritized while removing some redundant ones in the process. Keeping the oldest may sound counter intuitive, but if you instead prioritize the newest backups, any older ones would simply get deleted. You would never accumulate any backups past the first bucket that is less frequent that your typical backup period.
 
 ### Garbage Collection
 Garbage collection is a process that cleans up the database to ensure that it only holds important data. Each backup points to a series of objects, and the garbage collector will find any objects that are not referenced and delete them.
