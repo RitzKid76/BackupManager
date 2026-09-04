@@ -10,6 +10,7 @@ namespace Backup.ObjectDatabase;
 public static class Database
 {
     private const string METADATA_FOLDER = "_m";
+    private const long METADATA_CACHE_THRESHOLD = 64 * 1024;
 
     public static void Delete(Hash hash)
     {
@@ -62,6 +63,13 @@ public static class Database
 
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
+        string name = withPrefix
+            ? file.FullName
+            : file.Name;
+
+        if (file.Length < METADATA_CACHE_THRESHOLD)
+            return WriteFileSkipOptimization(file, name);
+
         PathMetadata? metadata = ReadPathMetadata(file.FullName);
         PathMetadata newMetaData = PathMetadata.Create(file);
 
@@ -80,27 +88,39 @@ public static class Database
             WritePathMetadata(newMetaData);
         }
 
-        string name = withPrefix
-            ? file.FullName
-            : file.Name;
-
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
         if (noChanges)
         {
-            Logger.Info($"no change: {hash} {file.FullName}");
+            Logger.Info($"skipping: {hash} {file.FullName}");
             return output;
         }
 
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(hash.ToString());
+        return WriteFileBlob(file, output);
+    }
+
+    private static ObjectReference? WriteFileSkipOptimization(FileInfo file, string name)
+    {
+        Hash? hash = Hash.Create(file);
+        if (hash is null)
+            return null;
+
+        ObjectReference output = new(name, ObjectFormat.BLOB, hash);
+
+        return WriteFileBlob(file, output);
+    }
+
+    private static ObjectReference WriteFileBlob(FileInfo file, ObjectReference output)
+    {
+        (string databaseFolder, string databasePath) = GetDatabaseAddress(output.Pointer.ToString());
 
         if (File.Exists(databasePath))
         {
-            Logger.Info($" skipping: {hash} {file.FullName}");
+            Logger.Info($" skipping: {output.Pointer} {file.FullName}");
             return output;
         }
 
-        Logger.Info($"  writing: {hash} {file.FullName}");
+        Logger.Info($"  writing: {output.Pointer} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
