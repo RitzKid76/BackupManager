@@ -62,9 +62,23 @@ public static class Database
 
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
-        Hash? hash = Hash.Create(file);
+        PathMetadata? metadata = ReadPathMetadata(file.FullName);
+        PathMetadata newMetaData = PathMetadata.Create(file);
+
+        bool noChanges = metadata is not null && newMetaData.LastWriteTime <= metadata.LastWriteTime;
+
+        Hash? hash = noChanges
+            ? metadata!.CachedPointer
+            : Hash.Create(file);
+
         if (hash is null)
             return null;
+
+        if (!noChanges)
+        {
+            newMetaData.CachePointer(hash);
+            WritePathMetadata(newMetaData);
+        }
 
         string name = withPrefix
             ? file.FullName
@@ -72,17 +86,21 @@ public static class Database
 
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
-        string hashString = hash.ToString();
-
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(hashString);
-
-        if (File.Exists(databasePath))
+        if (noChanges)
         {
-            Logger.Info($"skipping: {hash} {file.FullName}");
+            Logger.Info($"no change: {hash} {file.FullName}");
             return output;
         }
 
-        Logger.Info($" writing: {hash} {file.FullName}");
+        (string databaseFolder, string databasePath) = GetDatabaseAddress(hash.ToString());
+
+        if (File.Exists(databasePath))
+        {
+            Logger.Info($" skipping: {hash} {file.FullName}");
+            return output;
+        }
+
+        Logger.Info($"  writing: {hash} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
@@ -191,10 +209,13 @@ public static class Database
             stream.Write(metadata.ToString());
     }
 
-    public static PathMetadata ReadPathMetadata(string path)
+    public static PathMetadata? ReadPathMetadata(string path)
     {
         Hash hash = Hash.Create(path);
         (_, string databasePath) = GetMetaDatabaseAddress(hash.ToString());
+
+        if (!File.Exists(databasePath))
+            return null;
 
         string[] contents = File.ReadAllLines(databasePath);
         return PathMetadata.Parse(contents);
