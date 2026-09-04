@@ -104,3 +104,6 @@ dotnet_diagnostic.CA1067.severity = none
 
 # CA1806: Do not ignore method results
 dotnet_diagnostic.CA1806.severity = none
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error

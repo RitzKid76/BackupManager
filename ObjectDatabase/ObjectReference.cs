@@ -1,4 +1,5 @@
 using Backup.ObjectDatabase.Hashing;
+using Backup.ObjectDatabase.Metadatas;
 using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.ObjectDatabase;
@@ -9,7 +10,7 @@ public class ObjectReference
     public ObjectFormat Format { get; private set; }
     public Hash Pointer { get; private set; }
 
-    private bool isCompressed;
+    public ObjectMetadata? Metadata { get; private set; }
 
     public ObjectReference(string name, ObjectFormat format, Hash pointer)
     {
@@ -18,9 +19,9 @@ public class ObjectReference
         Pointer = pointer;
     }
 
-    public static bool TryParse(string contents, out ObjectReference? output)
+    public static bool TryParse(string contents, out ObjectReference? reference)
     {
-        output = null;
+        reference = null;
 
         if (contents.Length < 44)
             return false;
@@ -37,19 +38,26 @@ public class ObjectReference
 
         Hash pointer = Hash.Parse(hashString);
 
-        output = new(name, format.Value, pointer)
+        reference = new(name, format.Value, pointer)
         {
-            isCompressed = Database.IsBlobCompressed(hashString)
+            Metadata = Database.ReadObjectMetadata(pointer)
         };
 
         return true;
     }
 
-    public void MarkCompressed() =>
-        isCompressed = true;
+    public void MarkCompressed()
+    {
+        Metadata ??= new();
+
+        Metadata = Metadata with
+        {
+            Compressed = true
+        };
+    }
 
     public bool IsCompressed() =>
-        isCompressed;
+        Metadata?.Compressed ?? false;
 
     public void PrependPath(string path) =>
         Name = $"{path}\\{Name}";
