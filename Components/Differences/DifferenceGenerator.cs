@@ -95,6 +95,8 @@ public static class DifferenceGenerator
 
         foreach (ObjectReference current in currentList)
         {
+            Logger.Info($"diffing {current.Pointer}");
+
             if (!previousByKey.TryGetValue(keySelector(current), out ObjectReference? previous))
                 continue;
 

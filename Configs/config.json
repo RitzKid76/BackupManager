@@ -16,5 +16,6 @@
     "1h"
   ],
   "garbageCollect": true,
-  "writeTimeOptimizationThreshold": 262144
+  "writeTimeOptimizationThreshold": 262144,
+  "threads": 4
 }

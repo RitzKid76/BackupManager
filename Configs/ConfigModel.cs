@@ -5,5 +5,6 @@ public record ConfigModel(
     string DatabaseFolder,
     string[] CompressionBuckets,
     bool GarbageCollect,
-    long WriteTimeOptimizationThreshold
+    long WriteTimeOptimizationThreshold,
+    int Threads
 );

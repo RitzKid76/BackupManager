@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Backup.Components;
 using Backup.Configs;
 using Backup.Extensions;
@@ -10,6 +11,8 @@ namespace Backup.ObjectDatabase;
 public static class Database
 {
     private const string METADATA_FOLDER = "_m";
+
+    private static readonly ConcurrentDictionary<string, object> objectWriteLocks = new();
 
     public static void Delete(Hash hash)
     {
@@ -130,17 +133,27 @@ public static class Database
             return reference;
         }
 
-        Logger.Info($"  writing: {reference.Pointer} {file.FullName}");
-        Directory.CreateDirectory(databaseFolder);
+        object lockObj = objectWriteLocks.GetOrAdd(reference.Pointer.ToString(), _ => new object());
+        lock (lockObj)
+        {
+            if (File.Exists(databasePath))
+            {
+                Logger.Info($" skipping: {reference.Pointer} {file.FullName}");
+                return reference;
+            }
 
-        bool isCompressed = GZIP.Write(file, databasePath);
-        if (isCompressed)
-            reference.MarkCompressed();
+            Logger.Info($"  writing: {reference.Pointer} {file.FullName}");
+            Directory.CreateDirectory(databaseFolder);
 
-        if (reference.Metadata is not null)
-            WriteObjectMetadata(reference.Pointer, reference.Metadata);
+            bool isCompressed = GZIP.Write(file, databasePath);
+            if (isCompressed)
+                reference.MarkCompressed();
 
-        return reference;
+            if (reference.Metadata is not null)
+                WriteObjectMetadata(reference.Pointer, reference.Metadata);
+
+            return reference;
+        }
     }
 
     public static void RestoreFile(ObjectReference reference)
@@ -233,7 +246,6 @@ public static class Database
         Hash hash = Hash.Create(metadata.Path);
         (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(hash.ToString());
         Directory.CreateDirectory(databaseFolder);
-
         FileInfo metadataFile = new(databasePath);
         using (StreamWriter stream = metadataFile.CreateText())
             stream.Write(metadata.ToString());
