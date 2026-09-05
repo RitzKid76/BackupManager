@@ -77,7 +77,7 @@ public class BackupEntry
 
         output.AppendLine(CreationTime.ToString());
 
-        foreach (ObjectReference reference in References.OrderBy(r => r.FullName))
+        foreach (ObjectReference reference in References.OrderBy(r => r.Pointer.ToString()))
             output.AppendLine(reference.ToString());
 
         foreach (Difference difference in Differences)

@@ -243,9 +243,13 @@ public static class Database
 
     public static void WritePathMetadata(PathMetadata metadata)
     {
+        Logger.Info($"  writing: {metadata.CachedPointer} {metadata.Path} path metadata");
+
         Hash hash = Hash.Create(metadata.Path);
         (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(hash.ToString());
+
         Directory.CreateDirectory(databaseFolder);
+
         FileInfo metadataFile = new(databasePath);
         using (StreamWriter stream = metadataFile.CreateText())
             stream.Write(metadata.ToString());
@@ -281,6 +285,8 @@ public static class Database
 
     public static void WriteObjectMetadata(Hash pointer, ObjectMetadata metadata)
     {
+        Logger.Info($"  writing: {pointer} object metadata");
+
         (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(pointer.ToString());
         Directory.CreateDirectory(databaseFolder);
 

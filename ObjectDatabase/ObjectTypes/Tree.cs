@@ -63,7 +63,7 @@ public class Tree
     {
         StringBuilder output = new();
 
-        foreach (ObjectReference reference in References.OrderBy(r => r.FullName))
+        foreach (ObjectReference reference in References.OrderBy(r => r.Pointer.ToString()))
             output.AppendLine(reference.ToString());
 
         return output.ToString();
