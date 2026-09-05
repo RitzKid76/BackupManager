@@ -46,7 +46,10 @@ public static class GarbageCollector
     private static void SkipReferenceHashes(ObjectReference reference)
     {
         if (!toRemove.Remove(reference.Pointer))
+        {
+            Logger.Info($"skipping: {reference.Pointer} {reference.Name}");
             return;
+        }
 
         Logger.Info($"tracking: {reference.Pointer} {reference.Name}");
 
@@ -80,9 +83,13 @@ public static class GarbageCollector
 
     private static void TrashMeta()
     {
-        Logger.Info("deleting metadata...");
+        Logger.Info("checking metadata...");
         foreach (PathMetadata metadata in Database.GetAllPathMetas())
+        {
             if (!trackedPaths.Contains(metadata.Path))
                 Database.DeletePathMetadata(metadata);
+            else
+                Logger.Info($"skipping: {metadata.CachedPointer} path metadata");
+        }
     }
 }

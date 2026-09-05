@@ -36,54 +36,39 @@ public static class Database
             Directory.Delete(metaFolder);
     }
 
-    public static List<Hash> GetAllPointers()
+    public static IEnumerable<Hash> GetAllPointers()
     {
-        List<Hash> output = [];
-
-        string[] buckets = Directory.GetDirectories(Config.DatabaseFolder);
-        foreach (string bucket in buckets)
+        foreach (string bucket in Directory.EnumerateDirectories(Config.DatabaseFolder))
         {
             string bucketName = bucket.ExtractPathName();
-
             if (bucketName == METADATA_FOLDER)
                 continue;
 
-            string[] pointers = Directory.GetFiles(bucket);
-            foreach (string pointer in pointers)
+            foreach (string pointer in Directory.EnumerateFiles(bucket))
             {
                 string pointerName = pointer.ExtractPathName();
                 string hashString = $"{bucketName}{pointerName}";
 
-                output.Add(Hash.Parse(hashString));
+                yield return Hash.Parse(hashString);
             }
         }
-
-        return output;
     }
 
-    public static List<PathMetadata> GetAllPathMetas()
+    public static IEnumerable<PathMetadata> GetAllPathMetas()
     {
-        List<string> metaPaths = [];
-        List<PathMetadata> output = [];
-
-
         string folderPath = $"{Config.DatabaseFolder}/{METADATA_FOLDER}";
         if (!Directory.Exists(folderPath))
-            return [];
+            yield break;
 
-        string[] buckets = Directory.GetDirectories(folderPath);
-        foreach (string bucket in buckets)
-            metaPaths.AddRange(Directory.GetFiles(bucket));
-
-        foreach (string path in metaPaths)
+        foreach (string bucket in Directory.EnumerateDirectories(folderPath))
         {
-            string[] contents = File.ReadAllLines(path);
-
-            if (PathMetadata.TryParse(contents, out PathMetadata? metadata))
-                output.Add(metadata!);
+            foreach (string path in Directory.EnumerateFiles(bucket))
+            {
+                string[] contents = File.ReadAllLines(path);
+                if (PathMetadata.TryParse(contents, out PathMetadata? metadata))
+                    yield return metadata!;
+            }
         }
-
-        return output;
     }
 
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
