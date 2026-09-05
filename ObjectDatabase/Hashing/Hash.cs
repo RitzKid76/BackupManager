@@ -11,10 +11,14 @@ public class Hash : IEquatable<Hash>
 
     private static readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Shared;
 
-    private readonly byte[] hash;
+    private readonly string hash;
 
-    private Hash(byte[] hash) =>
+    private Hash(string hash) =>
         this.hash = hash;
+
+    private Hash(byte[] hash) :
+        this(Convert.ToHexStringLower(hash))
+    { }
 
     public static Hash? Create(FileInfo file)
     {
@@ -62,24 +66,16 @@ public class Hash : IEquatable<Hash>
         return new(hash);
     }
 
-    public static Hash Parse(string hashString)
-    {
-        byte[] hash = Convert.FromHexString(hashString);
-        return new(hash);
-    }
+    public static Hash Parse(string hashString) =>
+        new(hashString);
 
     public bool Equals(Hash? other) =>
         other is not null &&
         hash.SequenceEqual(other.hash);
 
-    public override int GetHashCode()
-    {
-        HashCode output = new();
-        output.AddBytes(hash);
-
-        return output.ToHashCode();
-    }
+    public override int GetHashCode() =>
+        hash.GetHashCode();
 
     public override string ToString() =>
-        Convert.ToHexStringLower(hash);
+       hash;
 }

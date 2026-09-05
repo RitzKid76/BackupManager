@@ -117,7 +117,7 @@ public static class Database
 
         if (noChanges)
         {
-            Logger.Info($"skipping: {hash} {file.FullName}");
+            Logger.Info($"*skipping: {hash} {file.FullName}");
             return output;
         }
 
@@ -141,11 +141,11 @@ public static class Database
 
         if (File.Exists(databasePath))
         {
-            Logger.Info($"skipping: {reference.Pointer} {file.FullName}");
+            Logger.Info($" skipping: {reference.Pointer} {file.FullName}");
             return reference;
         }
 
-        Logger.Info($" writing: {reference.Pointer} {file.FullName}");
+        Logger.Info($"  writing: {reference.Pointer} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
