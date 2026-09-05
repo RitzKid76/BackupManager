@@ -183,7 +183,7 @@ public static class BackupDatabase
 
         ParallelOptions parallelOptions = new()
         {
-            MaxDegreeOfParallelism = Config.MaxDegreeOfParallelism
+            MaxDegreeOfParallelism = Config.Threads
         };
 
         Parallel.ForEach(paths, parallelOptions, path =>
