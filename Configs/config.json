@@ -1,0 +1,20 @@
+{
+  "backupFolder": "C:\\path\\to\\your\\backup\\folder",
+  "databaseFolder": "C:\\path\\to\\your\\database",
+  "compressionBuckets": [
+    "1y",
+    "6M",
+    "3M",
+    "1M",
+    "2w",
+    "1w",
+    "3d",
+    "1d",
+    "12h",
+    "6h",
+    "3h",
+    "1h"
+  ],
+  "garbageCollect": true,
+  "writeTimeOptimizationThreshold": 262144
+}

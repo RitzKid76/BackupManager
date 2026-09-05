@@ -1,0 +1,19 @@
+# the root level entry must always be a drive letter
+C:
+  # you can add sub folders to the backup like this, and can even stack folders into the same line for deep nested files
+  Users\YOUR_USER:
+    Desktop:
+    # you can add files like this
+    - .gitconfig
+
+# this is a blacklist and it accepts glob format. some recommendations are provided already
+# it blocks anything in the containing folder or its sub folders that match the glob
+# because there is no containing folder for this case, it blocks everything in any drive
+^:
+  - "*.tmp"
+  - "*.temp"
+  - "*.log"
+  - "*.log.*"
+  - "*.bak"
+  - "*.cache"
+  - "*.dmp"
