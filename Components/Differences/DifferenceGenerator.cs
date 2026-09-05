@@ -13,15 +13,6 @@ public static class DifferenceGenerator
         return Filter(output, paths ?? []);
     }
 
-    public static List<Difference> FromReference(ObjectReference previous, ObjectReference current, List<string> paths)
-    {
-        List<Difference> output = [];
-
-        GenerateInternal(output, previous, current);
-
-        return Filter(output, paths);
-    }
-
     private static void GenerateInternal(List<Difference> output, ObjectReference previous, ObjectReference current)
     {
         if (previous.Format != current.Format)
