@@ -4,5 +4,6 @@ public record ConfigModel(
     string BackupFolder,
     string DatabaseFolder,
     string[] CompressionBuckets,
-    bool GarbageCollect
+    bool GarbageCollect,
+    long WriteTimeOptimizationThreshold
 );

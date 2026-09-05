@@ -10,7 +10,6 @@ namespace Backup.ObjectDatabase;
 public static class Database
 {
     private const string METADATA_FOLDER = "_m";
-    private const long METADATA_CACHE_THRESHOLD = 64 * 1024;
 
     public static void Delete(Hash hash)
     {
@@ -93,7 +92,7 @@ public static class Database
             ? file.FullName
             : file.Name;
 
-        if (file.Length < METADATA_CACHE_THRESHOLD)
+        if (file.Length < Config.WriteTimeOptimizationThreshold)
             return WriteFileSkipOptimization(file, name);
 
         PathMetadata? metadata = ReadPathMetadata(file.FullName);

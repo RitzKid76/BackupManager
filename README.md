@@ -161,3 +161,12 @@ You can disable this process by setting the config value to false, but there sho
 ```json
 "garbageCollect": true
 ```
+
+### WriteTime Optimization
+We use file hashing to describe the contents of any given file. For small files hashing will be almost instant, but some files can be excessively large and cause slower hashing speeds. Hashing time can be around 10-20 seconds for files around 1Gb. To get around this, we can use the last write time of the file to know if the file has changed since we last saw it.
+
+Unfortunately, this method can actually perform much worse than outright hashing the file at smaller file sizes. To allow the change detection process to be as fast as possible, we set a threshold at the point we expect to start seeing performance drops when hashing the files over comparing the cached write time with the latest write time using this config value:
+```json
+// this value is 256KiB (256 * 1024)
+"writeTimeOptimizationThreshold": 262144
+```
