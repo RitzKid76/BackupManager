@@ -4,21 +4,24 @@ namespace Backup.ObjectDatabase.ObjectTypes;
 
 public class Tree
 {
+    public string FullName { get; private set; }
+
     public string Name { get; private set; }
     public IEnumerable<ObjectReference> References => references;
 
     private readonly List<ObjectReference> references = [];
 
-    public Tree(string name) :
-        this(name, [])
+    public Tree(string fullName) :
+        this(fullName, fullName, [])
     { }
 
     public Tree(List<ObjectReference> references) :
-        this(string.Empty, references)
+        this(string.Empty, string.Empty, references)
     { }
 
-    private Tree(string name, List<ObjectReference> references)
+    private Tree(string fullName, string name, List<ObjectReference> references)
     {
+        FullName = fullName;
         Name = name;
         AddReferences(references);
     }
@@ -32,7 +35,7 @@ public class Tree
     public void AddReference(ObjectReference reference) =>
         references.Add(reference);
 
-    public static Tree Parse(string name, string[] contents)
+    public static Tree Parse(string fullName, string name, string[] contents)
     {
         List<ObjectReference> references = [];
         foreach (string line in contents)
@@ -41,16 +44,19 @@ public class Tree
             references.Add(reference!);
         }
 
-        return new(name, references);
+        Tree output = new(fullName, name, references);
+        output.PrependReferences();
+
+        return output;
     }
 
-    public void PrependRefernces()
+    private void PrependReferences()
     {
-        if (string.IsNullOrWhiteSpace(Name))
+        if (string.IsNullOrWhiteSpace(FullName))
             return;
 
         foreach (ObjectReference reference in References)
-            reference.PrependPath(Name);
+            reference.SetFullName(FullName);
     }
 
     public override string ToString()

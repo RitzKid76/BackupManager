@@ -21,17 +21,20 @@ public static class Database
         (string folder, string path) = GetDatabaseAddress(hashString);
         File.Delete(path);
 
-        (string compressedFolder, string compressedPath) = GetMetaDatabaseAddress(hashString);
-        if (File.Exists(compressedPath))
-            File.Delete(compressedPath);
+        (string metaFolder, string metaPath) = GetMetaDatabaseAddress(hashString);
+        if (File.Exists(metaPath))
+        {
+            Logger.Info($"deleting: {hashString} object metadata");
+            File.Delete(metaPath);
+        }
 
         if (Directory.EnumerateFiles(folder).Any())
             return;
 
         Directory.Delete(folder);
 
-        if (Directory.Exists(compressedFolder))
-            Directory.Delete(compressedFolder);
+        if (Directory.Exists(metaFolder))
+            Directory.Delete(metaFolder);
     }
 
     public static List<Hash> GetAllPointers()
@@ -59,7 +62,30 @@ public static class Database
         return output;
     }
 
+    public static List<PathMetadata> GetAllPathMetas()
+    {
+        List<string> metaPaths = [];
+        List<PathMetadata> output = [];
 
+
+        string folderPath = $"{Config.DatabaseFolder}/{METADATA_FOLDER}";
+        if (!Directory.Exists(folderPath))
+            return [];
+
+        string[] buckets = Directory.GetDirectories(folderPath);
+        foreach (string bucket in buckets)
+            metaPaths.AddRange(Directory.GetFiles(bucket));
+
+        foreach (string path in metaPaths)
+        {
+            string[] contents = File.ReadAllLines(path);
+
+            if (PathMetadata.TryParse(contents, out PathMetadata? metadata))
+                output.Add(metadata!);
+        }
+
+        return output;
+    }
 
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
@@ -110,27 +136,27 @@ public static class Database
         return WriteFileBlob(file, output);
     }
 
-    private static ObjectReference WriteFileBlob(FileInfo file, ObjectReference output)
+    private static ObjectReference WriteFileBlob(FileInfo file, ObjectReference reference)
     {
-        (string databaseFolder, string databasePath) = GetDatabaseAddress(output.Pointer.ToString());
+        (string databaseFolder, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
 
         if (File.Exists(databasePath))
         {
-            Logger.Info($" skipping: {output.Pointer} {file.FullName}");
-            return output;
+            Logger.Info($"skipping: {reference.Pointer} {file.FullName}");
+            return reference;
         }
 
-        Logger.Info($"  writing: {output.Pointer} {file.FullName}");
+        Logger.Info($" writing: {reference.Pointer} {file.FullName}");
         Directory.CreateDirectory(databaseFolder);
 
         bool isCompressed = GZIP.Write(file, databasePath);
         if (isCompressed)
-            output.MarkCompressed();
+            reference.MarkCompressed();
 
-        if (output.Metadata is not null)
-            WriteObjectMetadata(output.Pointer, output.Metadata);
+        if (reference.Metadata is not null)
+            WriteObjectMetadata(reference.Pointer, reference.Metadata);
 
-        return output;
+        return reference;
     }
 
     public static void RestoreFile(ObjectReference reference)
@@ -184,7 +210,7 @@ public static class Database
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
 
         string[] contents = File.ReadAllLines(databasePath);
-        return Tree.Parse(reference.Name, contents);
+        return Tree.Parse(reference.FullName, reference.Name, contents);
     }
 
 
@@ -238,7 +264,23 @@ public static class Database
             return null;
 
         string[] contents = File.ReadAllLines(databasePath);
-        return PathMetadata.Parse(contents);
+        PathMetadata.TryParse(contents, out PathMetadata? output);
+
+        return output;
+    }
+
+    public static void DeletePathMetadata(PathMetadata metadata)
+    {
+        Hash hash = Hash.Create(metadata.Path);
+        (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(hash.ToString());
+
+        File.Delete(databasePath);
+
+        if (Directory.EnumerateFiles(databaseFolder).Any())
+            return;
+
+        Logger.Info($"deleting: {metadata.CachedPointer} path metadata");
+        Directory.Delete(databaseFolder);
     }
 
     public static void WriteObjectMetadata(Hash pointer, ObjectMetadata metadata)

@@ -7,11 +7,8 @@ public static class DifferenceGenerator
 {
     public static List<Difference> FromBackup(BackupEntry previous, BackupEntry current, List<string>? paths = null)
     {
-        Tree previousTree = new(previous.References);
-        Tree currentTree = new(current.References);
-
         List<Difference> output = [];
-        DiffTrees(output, previousTree, currentTree);
+        DiffReferences(output, previous.References, current.References, r => r.FullName);
 
         return Filter(output, paths ?? []);
     }
@@ -34,7 +31,7 @@ public static class DifferenceGenerator
             return;
         }
 
-        if (previous.Name == current.Name)
+        if (previous.FullName == current.FullName)
         {
             if (!previous.Pointer.Equals(current.Pointer))
                 HandleChange(output, previous, current);
@@ -42,21 +39,14 @@ public static class DifferenceGenerator
             return;
         }
 
-        if (!previous.Pointer.Equals(current.Pointer))
+        if (previous.Pointer.Equals(current.Pointer))
         {
-            RemoveRecursive(output, previous);
-            AddRecursive(output, current);
-
+            output.Add(Difference.Rename(previous, current));
             return;
         }
 
-        if (previous.Format == ObjectFormat.TREE)
-        {
-            DiffTrees(output, Database.ReadTree(previous), Database.ReadTree(current));
-            return;
-        }
-
-        output.Add(Difference.Rename(previous, current));
+        RemoveRecursive(output, previous);
+        AddRecursive(output, current);
     }
 
     private static void HandleChange(List<Difference> output, ObjectReference previous, ObjectReference current)
@@ -68,7 +58,7 @@ public static class DifferenceGenerator
                 break;
 
             case ObjectFormat.TREE:
-                DiffTrees(output, Database.ReadTree(previous), Database.ReadTree(current));
+                DiffReferences(output, Database.ReadTree(previous).References, Database.ReadTree(current).References, r => r.Name);
                 break;
         }
     }
@@ -82,8 +72,6 @@ public static class DifferenceGenerator
         }
 
         Tree tree = Database.ReadTree(reference);
-        tree.PrependRefernces();
-
         foreach (ObjectReference child in tree.References)
             AddRecursive(output, child);
     }
@@ -97,27 +85,26 @@ public static class DifferenceGenerator
         }
 
         Tree tree = Database.ReadTree(reference);
-        tree.PrependRefernces();
-
         foreach (ObjectReference child in tree.References)
             RemoveRecursive(output, child);
     }
 
-    private static void DiffTrees(List<Difference> output, Tree previousTree, Tree currentTree)
+    private static void DiffReferences(
+        List<Difference> output,
+        IEnumerable<ObjectReference> previousReferences,
+        IEnumerable<ObjectReference> currentReferences,
+        Func<ObjectReference, string> keySelector)
     {
-        previousTree.PrependRefernces();
-        currentTree.PrependRefernces();
+        List<ObjectReference> previousList = previousReferences.ToList();
+        List<ObjectReference> currentList = currentReferences.ToList();
 
-        List<ObjectReference> previousReferences = previousTree.References.ToList();
-        List<ObjectReference> currentReferences = currentTree.References.ToList();
-
-        Dictionary<string, ObjectReference> previousByName = previousReferences.ToDictionary(r => r.Name);
+        Dictionary<string, ObjectReference> previousByKey = previousList.ToDictionary(keySelector);
         HashSet<ObjectReference> matchedPrevious = [];
         HashSet<ObjectReference> matchedCurrent = [];
 
-        foreach (ObjectReference current in currentReferences)
+        foreach (ObjectReference current in currentList)
         {
-            if (!previousByName.TryGetValue(current.Name, out ObjectReference? previous))
+            if (!previousByKey.TryGetValue(keySelector(current), out ObjectReference? previous))
                 continue;
 
             GenerateInternal(output, previous, current);
@@ -126,12 +113,12 @@ public static class DifferenceGenerator
             matchedCurrent.Add(current);
         }
 
-        foreach (ObjectReference current in currentReferences)
+        foreach (ObjectReference current in currentList)
         {
             if (matchedCurrent.Contains(current))
                 continue;
 
-            List<ObjectReference> candidates = previousReferences
+            List<ObjectReference> candidates = previousList
                 .Where(previous =>
                     !matchedPrevious.Contains(previous) &&
                     previous.Format == current.Format &&
@@ -154,7 +141,7 @@ public static class DifferenceGenerator
             matchedCurrent.Add(current);
         }
 
-        foreach (ObjectReference previous in previousReferences)
+        foreach (ObjectReference previous in previousList)
             if (!matchedPrevious.Contains(previous))
                 RemoveRecursive(output, previous);
     }
@@ -166,8 +153,8 @@ public static class DifferenceGenerator
 
         return differences
             .Where(difference =>
-                (difference.Previous is not null && MatchesAnyPath(difference.Previous.Name, paths)) ||
-                (difference.Current is not null && MatchesAnyPath(difference.Current.Name, paths)))
+                (difference.Previous is not null && MatchesAnyPath(difference.Previous.FullName, paths)) ||
+                (difference.Current is not null && MatchesAnyPath(difference.Current.FullName, paths)))
             .ToList();
     }
 

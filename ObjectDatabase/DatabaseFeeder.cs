@@ -36,11 +36,11 @@ public static class DatabaseFeeder
 
     private static ObjectReference? FeedDirectory(string path, IEnumerable<BlacklistEntry> blacklist, bool ignorePrefix)
     {
-        string name = ignorePrefix
+        string fullName = ignorePrefix
             ? path.ExtractPathName()
             : path;
 
-        Tree tree = new(name);
+        Tree tree = new(fullName);
 
         foreach (string dir in Directory.EnumerateDirectories(path))
         {

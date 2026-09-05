@@ -1,5 +1,6 @@
 using Backup.Components;
 using Backup.ObjectDatabase.Hashing;
+using Backup.ObjectDatabase.Metadatas;
 using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.ObjectDatabase;
@@ -8,15 +9,27 @@ public static class GarbageCollector
 {
     private static readonly HashSet<Hash> toRemove = [];
 
+    private static readonly HashSet<string> trackedPaths = [];
+
     public static void Run()
     {
         Logger.Info("garbage collecting...");
-        toRemove.Clear();
 
+        TrashObjects();
+        TrashMeta();
+    }
+
+    private static void TrashObjects()
+    {
+        toRemove.Clear();
+        trackedPaths.Clear();
 
         Logger.Info("loading objects...");
         foreach (Hash hash in Database.GetAllPointers())
+        {
+            Logger.Info($"loading: {hash}");
             toRemove.Add(hash);
+        }
 
         SkipExistingBackupHashes();
         RemoveExtras();
@@ -24,22 +37,26 @@ public static class GarbageCollector
 
     private static void SkipExistingBackupHashes()
     {
+        Logger.Info("tracking objects...");
         foreach (BackupEntry backup in BackupDatabase.GetBackups())
-        {
             foreach (ObjectReference reference in backup.References)
                 SkipReferenceHashes(reference);
-        }
     }
 
     private static void SkipReferenceHashes(ObjectReference reference)
     {
+        if (!toRemove.Remove(reference.Pointer))
+            return;
+
         Logger.Info($"tracking: {reference.Pointer} {reference.Name}");
-        toRemove.Remove(reference.Pointer);
 
         switch (reference.Format)
         {
             case ObjectFormat.TREE:
                 SkipTree(reference);
+                break;
+            case ObjectFormat.BLOB:
+                trackedPaths.Add(reference.FullName);
                 break;
         }
     }
@@ -54,7 +71,18 @@ public static class GarbageCollector
 
     private static void RemoveExtras()
     {
+        Logger.Info("deleting objects...");
         foreach (Hash hash in toRemove)
             Database.Delete(hash);
+    }
+
+
+
+    private static void TrashMeta()
+    {
+        Logger.Info("deleting metadata...");
+        foreach (PathMetadata metadata in Database.GetAllPathMetas())
+            if (!trackedPaths.Contains(metadata.Path))
+                Database.DeletePathMetadata(metadata);
     }
 }

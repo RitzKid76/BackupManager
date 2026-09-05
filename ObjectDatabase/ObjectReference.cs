@@ -6,6 +6,8 @@ namespace Backup.ObjectDatabase;
 
 public class ObjectReference
 {
+    public string FullName { get; private set; }
+
     public string Name { get; private set; }
     public ObjectFormat Format { get; private set; }
     public Hash Pointer { get; private set; }
@@ -14,6 +16,8 @@ public class ObjectReference
 
     public ObjectReference(string name, ObjectFormat format, Hash pointer)
     {
+        FullName = name;
+
         Name = name;
         Format = format;
         Pointer = pointer;
@@ -59,8 +63,8 @@ public class ObjectReference
     public bool IsCompressed() =>
         Metadata?.Compressed ?? false;
 
-    public void PrependPath(string path) =>
-        Name = $"{path}\\{Name}";
+    public void SetFullName(string fullName) =>
+        FullName = $"{fullName}\\{Name}";
 
     public override string ToString() =>
         $"{Format.GetFormatChar()} {Pointer} {Name}";

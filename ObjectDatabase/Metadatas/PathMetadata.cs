@@ -26,13 +26,24 @@ public class PathMetadata
     public void CachePointer(Hash pointer) =>
         CachedPointer = pointer;
 
-    public static PathMetadata Parse(string[] contents)
+    public static bool TryParse(string[] contents, out PathMetadata? pathMetadata)
     {
-        string path = contents[0];
-        long modificationTime = long.Parse(contents[1]);
-        Hash cachedPointer = Hash.Parse(contents[2]);
+        pathMetadata = null;
 
-        return new(path, modificationTime, cachedPointer);
+        try
+        {
+            string path = contents[0];
+            long lastWriteTime = long.Parse(contents[1]);
+            Hash cachedPointer = Hash.Parse(contents[2]);
+
+            pathMetadata = new(path, lastWriteTime, cachedPointer);
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     public override string ToString() =>

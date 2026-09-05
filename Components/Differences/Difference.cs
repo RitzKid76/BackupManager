@@ -1,6 +1,7 @@
 using System.Text;
 using Backup.ObjectDatabase;
 using Backup.ObjectDatabase.Hashing;
+using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.Components.Differences;
 
@@ -70,11 +71,11 @@ public class Difference
 
         ObjectReference? current = null;
         if (currentName is not null && currentPointerString is not null)
-            current = new(currentName, ObjectDatabase.ObjectTypes.ObjectFormat.BLOB, Hash.Parse(currentPointerString));
+            current = new(currentName, ObjectFormat.BLOB, Hash.Parse(currentPointerString));
 
         ObjectReference? previous = null;
         if (previousName is not null && previousPointerString is not null)
-            previous = new(previousName, ObjectDatabase.ObjectTypes.ObjectFormat.BLOB, Hash.Parse(previousPointerString));
+            previous = new(previousName, ObjectFormat.BLOB, Hash.Parse(previousPointerString));
 
         return new(type, previous, current);
     }
@@ -86,15 +87,15 @@ public class Difference
         output.Append($"{Type.GetTypeChar()} ");
 
         if (Type == DifferenceType.RENAME)
-            output.Append($"{Previous!.Name} > {Current!.Name}");
+            output.Append($"{Previous!.FullName} > {Current!.FullName}");
 
         else if (
             Type == DifferenceType.CHANGE ||
             Type == DifferenceType.ADDITION
-        ) output.Append(Current!.Name);
+        ) output.Append(Current!.FullName);
 
         else if (Type == DifferenceType.REMOVAL)
-            output.Append(Previous!.Name);
+            output.Append(Previous!.FullName);
 
         return output.ToString();
     }
@@ -108,10 +109,10 @@ public class Difference
                 Database.RestoreFile(Current!);
                 break;
             case DifferenceType.REMOVAL:
-                File.Delete(Previous!.Name);
+                File.Delete(Previous!.FullName);
                 break;
             case DifferenceType.RENAME:
-                File.Move(Previous!.Name, Current!.Name);
+                File.Move(Previous!.FullName, Current!.FullName);
                 break;
         }
     }
@@ -123,16 +124,16 @@ public class Difference
         output.Append($"{Type.GetTypeChar()} ");
 
         if (Type == DifferenceType.RENAME)
-            output.Append($"{Current!.Pointer} {Previous!.Name} > {Current.Name}");
+            output.Append($"{Current!.Pointer} {Previous!.FullName} > {Current.FullName}");
 
         else if (Type == DifferenceType.CHANGE)
-            output.Append($"{Previous!.Pointer} {Current!.Pointer} {Current.Name}");
+            output.Append($"{Previous!.Pointer} {Current!.Pointer} {Current.FullName}");
 
         else if (Type == DifferenceType.ADDITION)
-            output.Append($"{Current!.Pointer} {Current.Name}");
+            output.Append($"{Current!.Pointer} {Current.FullName}");
 
         else if (Type == DifferenceType.REMOVAL)
-            output.Append($"{Previous!.Pointer} {Previous.Name}");
+            output.Append($"{Previous!.Pointer} {Previous.FullName}");
 
         return output.ToString();
     }
