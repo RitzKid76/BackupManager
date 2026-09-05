@@ -71,7 +71,7 @@ public class Hash : IEquatable<Hash>
 
     public bool Equals(Hash? other) =>
         other is not null &&
-        hash.SequenceEqual(other.hash);
+        hash.Equals(other.hash);
 
     public override int GetHashCode() =>
         hash.GetHashCode();
