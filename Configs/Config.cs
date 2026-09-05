@@ -9,6 +9,7 @@ public static class Config
     public static string[] CompressionBuckets { get; private set; } = [];
     public static bool GarbageCollect { get; private set; } = true;
     public static long WriteTimeOptimizationThreshold { get; private set; } = 262144;
+    public static int Threads { get; private set; } = 4;
 
     static Config() =>
         LoadConfigJson();
@@ -29,5 +30,6 @@ public static class Config
         CompressionBuckets = model.CompressionBuckets;
         GarbageCollect = model.GarbageCollect;
         WriteTimeOptimizationThreshold = model.WriteTimeOptimizationThreshold;
+        Threads = model.Threads;
     }
 }

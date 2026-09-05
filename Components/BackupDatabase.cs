@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Backup.Components.Differences;
 using Backup.Configs;
 using Backup.ObjectDatabase;
@@ -38,6 +39,7 @@ public static class BackupDatabase
 
     private static void TrackBackup(BackupEntry backup)
     {
+        Logger.Info("tracking backup...");
         Dictionary<int, BackupEntry> newBackupsByIndex = [];
         foreach (KeyValuePair<int, BackupEntry> pair in backupsByIndex)
             newBackupsByIndex[pair.Key + 1] = pair.Value;
@@ -170,33 +172,35 @@ public static class BackupDatabase
 
     public static BackupEntry Generate(string? backupName = null, bool force = false)
     {
-        if (
-            backupName is not null &&
-            !force &&
-            TryGetBackup(backupName, out _)
-        ) throw new BackupAlreadyExistsException(backupName);
+        if (backupName is not null && !force && TryGetBackup(backupName, out _))
+            throw new BackupAlreadyExistsException(backupName);
 
-        (
-            IEnumerable<string> paths,
-            IEnumerable<BlacklistEntry> blacklist
-        ) = PathLoader.Load();
+        (IEnumerable<string> paths, IEnumerable<BlacklistEntry> blacklist) = PathLoader.Load();
 
         BackupEntry backup = new(backupName ?? DefaultName());
 
-        foreach (string path in paths)
+        ConcurrentBag<ObjectReference> references = [];
+
+        ParallelOptions parallelOptions = new()
+        {
+            MaxDegreeOfParallelism = Config.MaxDegreeOfParallelism
+        };
+
+        Parallel.ForEach(paths, parallelOptions, path =>
         {
             ObjectReference? reference = DatabaseFeeder.Feed(path, blacklist);
             if (reference is not null)
-                backup.AddReference(reference);
-        }
+                references.Add(reference);
+        });
+
+        foreach (ObjectReference reference in references)
+            backup.AddReference(reference);
 
         if (backup.References.Count == 0)
             return backup;
 
         Logger.Log("finalizing...");
-
         TrackBackup(backup);
-
         Database.WriteBackup(backup);
         return backup;
     }

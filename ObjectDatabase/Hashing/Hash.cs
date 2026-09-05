@@ -7,7 +7,7 @@ namespace Backup.ObjectDatabase.Hashing;
 public class Hash : IEquatable<Hash>
 {
     private const int HashLength = 20;
-    private const int BufferSize = 1024 * 1024;
+    private const int BufferSize = 4 * 1024 * 1024;
 
     private static readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Shared;
 

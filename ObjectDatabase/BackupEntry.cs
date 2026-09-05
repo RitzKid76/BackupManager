@@ -48,6 +48,7 @@ public class BackupEntry
 
     public void RegenerateDifference()
     {
+        Logger.Info("regenerating diff...");
         if (BackupDatabase.Count() == 0)
             return;
 
@@ -76,7 +77,7 @@ public class BackupEntry
 
         output.AppendLine(CreationTime.ToString());
 
-        foreach (ObjectReference reference in References)
+        foreach (ObjectReference reference in References.OrderBy(r => r.FullName))
             output.AppendLine(reference.ToString());
 
         foreach (Difference difference in Differences)

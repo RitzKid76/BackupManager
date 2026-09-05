@@ -65,12 +65,15 @@ public static class Compressor
 
     public static void Run()
     {
+        Logger.Info("compressing...");
+
         PopulateBuckets();
         TrimBuckets();
     }
 
     private static void PopulateBuckets()
     {
+        Logger.Info("populating buckets...");
         buckets.Clear();
         long timeOfCompression = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -97,6 +100,7 @@ public static class Compressor
 
     private static void TrimBuckets()
     {
+        Logger.Info("trimming buckets...");
         //              dont touch the spacer bucket VVV
         foreach (List<string> bucket in buckets.Values.Skip(1))
             if (bucket.Count > 1)

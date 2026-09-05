@@ -170,3 +170,11 @@ Unfortunately, this method can actually perform much worse than outright hashing
 // this value is 256KiB (256 * 1024)
 "writeTimeOptimizationThreshold": 262144
 ```
+
+### Threads
+For users with multiple drives, threads can improve the backup time by placing each drive on its own thread. Ideally we use threads per drive, but this gets complicated with HDDs vs SSDs so it is left out for now.
+
+This is not a perfect solution because the main backup location is on a single drive handling IO from all threads, but it does improve the backup time slightly so it is still worth it.
+```json
+"threads": 4
+```
