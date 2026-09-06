@@ -47,11 +47,11 @@ public static class GarbageCollector
     {
         if (!toRemove.Remove(reference.Pointer))
         {
-            Logger.Info($"skipping: {reference.Pointer} {reference.Name}");
+            Logger.Info($"skipping: {reference.Pointer} {reference.FullName}");
             return;
         }
 
-        Logger.Info($"tracking: {reference.Pointer} {reference.Name}");
+        Logger.Info($"tracking: {reference.Pointer} {reference.FullName}");
 
         switch (reference.Format)
         {
@@ -89,7 +89,7 @@ public static class GarbageCollector
             if (!trackedPaths.Contains(metadata.Path))
                 Database.DeletePathMetadata(metadata);
             else
-                Logger.Info($"skipping: {metadata.CachedPointer} path metadata");
+                Logger.Info($"skipping: {metadata.CachedPointer} {metadata.Path} path metadata");
         }
     }
 }

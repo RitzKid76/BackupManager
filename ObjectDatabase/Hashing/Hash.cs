@@ -73,6 +73,10 @@ public class Hash : IEquatable<Hash>
         other is not null &&
         hash.Equals(other.hash);
 
+    public override bool Equals(object? obj) =>
+        obj is Hash other &&
+        Equals(other);
+
     public override int GetHashCode() =>
         hash.GetHashCode();
 

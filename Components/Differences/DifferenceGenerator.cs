@@ -49,7 +49,7 @@ public static class DifferenceGenerator
                 break;
 
             case ObjectFormat.TREE:
-                DiffReferences(output, Database.ReadTree(previous).References, Database.ReadTree(current).References, r => r.Name);
+                DiffReferences(output, Database.ReadTree(previous).References.ToList(), Database.ReadTree(current).References, r => r.Name);
                 break;
         }
     }
@@ -82,18 +82,15 @@ public static class DifferenceGenerator
 
     private static void DiffReferences(
         List<Difference> output,
-        IEnumerable<ObjectReference> previousReferences,
+        List<ObjectReference> previousReferences,
         IEnumerable<ObjectReference> currentReferences,
         Func<ObjectReference, string> keySelector)
     {
-        List<ObjectReference> previousList = previousReferences.ToList();
-        List<ObjectReference> currentList = currentReferences.ToList();
-
-        Dictionary<string, ObjectReference> previousByKey = previousList.ToDictionary(keySelector);
+        Dictionary<string, ObjectReference> previousByKey = previousReferences.ToDictionary(keySelector);
         HashSet<ObjectReference> matchedPrevious = [];
         HashSet<ObjectReference> matchedCurrent = [];
 
-        foreach (ObjectReference current in currentList)
+        foreach (ObjectReference current in currentReferences)
         {
             Logger.Info($"diffing {current.Pointer}");
 
@@ -106,12 +103,12 @@ public static class DifferenceGenerator
             matchedCurrent.Add(current);
         }
 
-        foreach (ObjectReference current in currentList)
+        foreach (ObjectReference current in currentReferences)
         {
             if (matchedCurrent.Contains(current))
                 continue;
 
-            List<ObjectReference> candidates = previousList
+            List<ObjectReference> candidates = previousReferences
                 .Where(previous =>
                     !matchedPrevious.Contains(previous) &&
                     previous.Format == current.Format &&
@@ -134,7 +131,7 @@ public static class DifferenceGenerator
             matchedCurrent.Add(current);
         }
 
-        foreach (ObjectReference previous in previousList)
+        foreach (ObjectReference previous in previousReferences)
             if (!matchedPrevious.Contains(previous))
                 RemoveRecursive(output, previous);
     }
