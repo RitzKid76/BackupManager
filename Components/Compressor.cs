@@ -18,27 +18,27 @@ public static class Compressor
     };
 
     private static readonly Dictionary<long, List<string>> buckets = [];
-    private static readonly List<long> bucketTimes = [];
+    private static readonly List<(long, string)> bucketTimes = [];
 
     static Compressor() =>
         StashBucketTimes();
 
     private static void StashBucketTimes()
     {
-        LinkedList<long> bucketTimes = [];
+        LinkedList<(long, string)> bucketTimes = [];
 
         foreach (string bucketString in Config.CompressionBuckets)
-            bucketTimes.AddLast(ParseBucket(bucketString));
+            bucketTimes.AddLast((ParseBucket(bucketString), bucketString));
 
-        LinkedListNode<long>? first = bucketTimes.First;
+        LinkedListNode<(long, string)>? first = bucketTimes.First;
         if (first is null)
             return;
 
-        LinkedListNode<long>? current = first.Next;
+        LinkedListNode<(long, string)>? current = first.Next;
         while (current is not null)
         {
-            long previousTime = current.Previous!.Value;
-            long currentTime = current.Value;
+            long previousTime = current.Previous!.Value.Item1;
+            long currentTime = current.Value.Item1;
 
             if (previousTime <= currentTime)
                 throw new InvalidCompressionBucketConfig();
@@ -46,8 +46,8 @@ public static class Compressor
             current = current.Next;
         }
 
-        long spacer = first.Value * 2;
-        bucketTimes.AddFirst(spacer);
+        long spacer = first.Value.Item1 * 2;
+        bucketTimes.AddFirst((spacer, "*"));
 
         Compressor.bucketTimes.AddRange(bucketTimes);
     }
@@ -87,11 +87,11 @@ public static class Compressor
 
         for (int i = 0; i < bucketTimes.Count; i++)
         {
-            long bucketTime = bucketTimes[i];
-            if (timePassed < bucketTimes[i])
+            long bucketTime = bucketTimes[i].Item1;
+            if (timePassed < bucketTime)
                 continue;
 
-            Logger.Info($"{i} -> {backup.Name}");
+            Logger.Info($"{bucketTimes[i].Item2} -> {backup.Name}");
             buckets.GetValueOrAdd(bucketTime, () => []).Add(backup.Name);
 
             return;
@@ -101,10 +101,18 @@ public static class Compressor
     private static void TrimBuckets()
     {
         Logger.Info("trimming buckets...");
+
         //              dont touch the spacer bucket VVV
-        foreach (List<string> bucket in buckets.Values.Skip(1))
-            if (bucket.Count > 1)
-                foreach (string extraBackup in bucket[1..])
-                    BackupDatabase.Delete(extraBackup, true);
+        foreach (long bucketTime in bucketTimes.Skip(1).Select(b => b.Item1))
+        {
+            if (!buckets.TryGetValue(bucketTime, out List<string>? bucket))
+                continue;
+
+            if (bucket.Count <= 1)
+                continue;
+
+            foreach (string extraBackup in bucket[1..])
+                BackupDatabase.Delete(extraBackup, true);
+        }
     }
 }
