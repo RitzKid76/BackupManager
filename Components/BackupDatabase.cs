@@ -132,6 +132,8 @@ public static class BackupDatabase
 
         Logger.Log("preparing restore...");
 
+        CleanupHandler.BeginSkip();
+
         string latestStateName = LatestStateName(backupName);
         BackupEntry latestState = Generate(latestStateName, true);
 
@@ -142,8 +144,9 @@ public static class BackupDatabase
         if (changesSinceBackup.Count == 0)
         {
             Delete(latestState, true);
-
             Logger.Log("no changes to restore.");
+
+            CleanupHandler.EndSkip();
             return true;
         }
 
@@ -154,10 +157,14 @@ public static class BackupDatabase
         if (!confirmation)
         {
             Delete(latestState, true);
+
+            CleanupHandler.EndSkip();
             return true;
         }
 
         RestoreDifferences(changesSinceBackup);
+
+        CleanupHandler.EndSkip();
         return true;
     }
 

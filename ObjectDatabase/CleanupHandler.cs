@@ -8,10 +8,11 @@ public static class CleanupHandler
     private static bool working = false;
     private static bool scheduleRun = false;
     private static bool running = false;
+    private static bool skipping = false;
 
     public static void Run()
     {
-        if (running)
+        if (running || skipping)
             return;
 
         if (working)
@@ -34,6 +35,12 @@ public static class CleanupHandler
         if (scheduleRun)
             Run();
     }
+
+    public static void BeginSkip() =>
+        skipping = true;
+
+    public static void EndSkip() =>
+        skipping = false;
 
     private static void StartCleanup()
     {
