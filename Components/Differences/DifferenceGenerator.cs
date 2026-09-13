@@ -136,7 +136,7 @@ public static class DifferenceGenerator
                 RemoveRecursive(output, previous);
     }
 
-    private static List<Difference> Filter(List<Difference> differences, List<string> paths)
+    public static List<Difference> Filter(List<Difference> differences, List<string> paths)
     {
         if (paths.Count == 0)
             return differences;

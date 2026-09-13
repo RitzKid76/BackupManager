@@ -24,13 +24,21 @@ public class Difference_Command : ICommand
             return true;
         }
 
+        if (argSet.HasFlag("v"))
+            Logger.EnableInfo();
+
         List<string> args = argSet.GetArguments();
 
         BackupEntry? previous = null;
         BackupEntry? current = null;
+        List<string> fileGlobs = [];
 
         switch (args.Count)
         {
+            case >= 3:
+                (previous, current) = (ExtractBackup(args[0], 1), ExtractBackup(args[1], 0));
+                fileGlobs = args[2..];
+                break;
             case 2:
                 (previous, current) = (ExtractBackup(args[0]), ExtractBackup(args[1]));
                 break;
@@ -43,23 +51,30 @@ public class Difference_Command : ICommand
         }
 
         if (previous is null)
+        {
+            Logger.DisableInfo();
             return true;
+        }
 
         int previousIndex = BackupDatabase.IndexOf(previous.Name);
         int currentIndex = BackupDatabase.IndexOf(current!.Name);
 
-        List<Difference> differences = currentIndex == previousIndex - 1
-            ? current!.Differences // we store a cached diff already using the previous
-            : DifferenceGenerator.FromBackup(previous, current!);
+        List<Difference> differences = currentIndex == previousIndex - 1 // we store a cached diff already using the previous
+            ? DifferenceGenerator.Filter(current!.Differences, fileGlobs)
+            : DifferenceGenerator.FromBackup(previous, current!, fileGlobs);
 
         foreach (Difference difference in differences)
             Logger.Log(difference.DiffString());
 
+        Logger.DisableInfo();
         return true;
     }
 
-    private static BackupEntry? ExtractBackup(string backupName)
+    private static BackupEntry? ExtractBackup(string backupName, int? fallbackIndex = null)
     {
+        if (backupName == "." && fallbackIndex is not null)
+            return BackupDatabase.GetBackup(fallbackIndex.Value);
+
         if (!BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup))
         {
             Logger.Log($"couldn't find backup '{backupName}'");
@@ -71,6 +86,8 @@ public class Difference_Command : ICommand
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("displays the changes between 2 backup versions")
-        .Parameter("previous", "the backup to compare against. default is assumed to be the second latest backup")
-        .Parameter("current", "the backup to compare against the previous backup. default is the latest backup");
+        .Parameter("previous", "the backup to compare against. default is assumed to be the second latest backup.")
+        .Parameter("current", "the backup to compare against the previous backup. default is the latest backup")
+        .Parameter("files...", "the file names to display in the diff. supports glob matching. use '.' to pick field defaults: diff . . <files...>")
+        .Flag("v", "logs all actions to show progress");
 }
