@@ -1,3 +1,4 @@
+using System.Text;
 using Backup.Components;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.Metadatas;
@@ -8,6 +9,8 @@ namespace Backup.ObjectDatabase;
 public static class GarbageCollector
 {
     private static readonly HashSet<Hash> toRemove = [];
+    private static readonly HashSet<Hash> seen = [];
+    private static readonly List<ObjectReference> missing = [];
 
     private static readonly HashSet<string> trackedPaths = [];
 
@@ -17,11 +20,17 @@ public static class GarbageCollector
 
         TrashObjects();
         TrashMeta();
+
+        if (missing.Count > 0)
+            LogMissing();
     }
 
     private static void TrashObjects()
     {
         toRemove.Clear();
+        seen.Clear();
+        missing.Clear();
+
         trackedPaths.Clear();
 
         Logger.Info("loading objects...");
@@ -47,9 +56,15 @@ public static class GarbageCollector
     {
         if (!toRemove.Remove(reference.Pointer))
         {
-            Logger.Info($"skipping: {reference.Pointer} {reference.FullName}");
+            if (seen.Contains(reference.Pointer))
+                Logger.Info($"skipping: {reference.Pointer} {reference.FullName}");
+            else
+                missing.Add(reference);
+
             return;
         }
+
+        seen.Add(reference.Pointer);
 
         Logger.Info($"tracking: {reference.Pointer} {reference.FullName}");
 
@@ -91,5 +106,18 @@ public static class GarbageCollector
             else
                 Logger.Info($"skipping: {metadata.CachedPointer} {metadata.Path} path metadata");
         }
+    }
+
+
+
+    private static void LogMissing()
+    {
+        StringBuilder builder = new();
+        builder.AppendLine("================================ MISSING REFERENCES DETECTED ================================");
+
+        foreach (ObjectReference reference in missing)
+            builder.AppendLine($"{reference.Pointer} {reference.FullName}");
+
+        Logger.Log(builder.ToString());
     }
 }

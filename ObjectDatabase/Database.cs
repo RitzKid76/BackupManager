@@ -74,6 +74,8 @@ public static class Database
         }
     }
 
+
+
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
     {
         string name = withPrefix
@@ -93,7 +95,10 @@ public static class Database
             : Hash.Create(file);
 
         if (hash is null)
+        {
+            Logger.Log($"X  failed: {file.FullName}");
             return null;
+        }
 
         if (!noChanges)
         {
@@ -116,7 +121,10 @@ public static class Database
     {
         Hash? hash = Hash.Create(file);
         if (hash is null)
+        {
+            Logger.Log($"X  failed: {file.FullName}");
             return null;
+        }
 
         ObjectReference output = new(name, ObjectFormat.BLOB, hash);
 
