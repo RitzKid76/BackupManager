@@ -1,7 +1,5 @@
 using System.Text;
 using Backup.ObjectDatabase;
-using Backup.ObjectDatabase.Hashing;
-using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.Components.Differences;
 
@@ -71,11 +69,11 @@ public class Difference
 
         ObjectReference? current = null;
         if (currentName is not null && currentPointerString is not null)
-            current = new(currentName, ObjectFormat.BLOB, Hash.Parse(currentPointerString));
+            current = ObjectReference.CreateBlob(currentName, currentPointerString);
 
         ObjectReference? previous = null;
         if (previousName is not null && previousPointerString is not null)
-            previous = new(previousName, ObjectFormat.BLOB, Hash.Parse(previousPointerString));
+            previous = ObjectReference.CreateBlob(previousName, previousPointerString);
 
         return new(type, previous, current);
     }

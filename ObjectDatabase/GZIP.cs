@@ -53,12 +53,28 @@ public static class GZIP
         return true;
     }
 
-    public static void Read(FileInfo source, string destination)
+    public static void CopyTo(FileInfo source, string destination)
     {
         using FileStream sourceStream = source.OpenRead();
         using FileStream destinationStream = File.Create(destination);
 
         using GZipStream decompressedStream = new(sourceStream, CompressionMode.Decompress, true);
         decompressedStream.CopyTo(destinationStream);
+    }
+
+    public static string[] Read(string path)
+    {
+        FileInfo source = new(path);
+
+        using FileStream stream = source.OpenRead();
+
+        using GZipStream decompressedStream = new(stream, CompressionMode.Decompress);
+        using StreamReader reader = new(decompressedStream);
+
+        List<string> output = [];
+        while (reader.ReadLine() is string line)
+            output.Add(line);
+
+        return output.ToArray();
     }
 }

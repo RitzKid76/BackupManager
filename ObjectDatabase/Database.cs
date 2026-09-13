@@ -106,7 +106,7 @@ public static class Database
             WritePathMetadata(newMetaData);
         }
 
-        ObjectReference output = new(name, ObjectFormat.BLOB, hash);
+        ObjectReference output = ObjectReference.CreateBlob(name, hash);
 
         if (noChanges)
         {
@@ -126,7 +126,7 @@ public static class Database
             return null;
         }
 
-        ObjectReference output = new(name, ObjectFormat.BLOB, hash);
+        ObjectReference output = ObjectReference.CreateBlob(name, hash);
 
         return WriteFileBlob(file, output);
     }
@@ -164,12 +164,24 @@ public static class Database
         }
     }
 
+    public static string[] ReadFile(ObjectReference reference)
+    {
+        if (reference.Format != ObjectFormat.BLOB)
+            throw new ArgumentException($"Expected BLOB but found {reference.Format}");
+
+        (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
+
+        return reference.IsCompressed()
+            ? GZIP.Read(databasePath)
+            : File.ReadAllLines(databasePath);
+    }
+
     public static void RestoreFile(ObjectReference reference)
     {
         if (reference.Format != ObjectFormat.BLOB)
             throw new ArgumentException($"Expected BLOB but found {reference.Format}");
 
-        string path = reference.Name;
+        string path = reference.FullName;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
         Logger.Info($"restoring: {path}");
@@ -179,7 +191,7 @@ public static class Database
         Directory.CreateDirectory(path.ExtractPathDirectory());
 
         if (reference.IsCompressed())
-            GZIP.Read(file, path);
+            GZIP.CopyTo(file, path);
         else
             file.CopyTo(path, true);
     }
@@ -191,7 +203,7 @@ public static class Database
         string data = tree.ToString();
         Hash hash = Hash.Create(data);
 
-        ObjectReference output = new(tree.Name, ObjectFormat.TREE, hash);
+        ObjectReference output = ObjectReference.CreateTree(tree.Name, hash);
 
         (string databaseFolder, string databasePath) = GetDatabaseAddress(hash.ToString());
 
@@ -303,9 +315,9 @@ public static class Database
             stream.Write(metadata.ToString());
     }
 
-    public static ObjectMetadata? ReadObjectMetadata(Hash pointer)
+    public static ObjectMetadata? ReadObjectMetadata(string pointerString)
     {
-        (_, string databasePath) = GetMetaDatabaseAddress(pointer.ToString());
+        (_, string databasePath) = GetMetaDatabaseAddress(pointerString);
 
         if (!File.Exists(databasePath))
             return null;

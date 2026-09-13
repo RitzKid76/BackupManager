@@ -64,7 +64,25 @@ public class Difference_Command : ICommand
             : DifferenceGenerator.FromBackup(previous, current!, fileGlobs);
 
         foreach (Difference difference in differences)
+        {
             Logger.Log(difference.DiffString());
+            if (!argSet.HasFlag("l"))
+                continue;
+
+            ObjectReference? previousObject = difference.Previous;
+            ObjectReference? currentObject = difference.Current;
+
+            string[] previousData = previousObject is not null
+                ? Database.ReadFile(previousObject)
+                : [];
+
+            string[] currentData = currentObject is not null
+                ? Database.ReadFile(currentObject)
+                : [];
+
+            string diff = FileDifferenceGenerator.DiffContents(previousData, currentData);
+            Logger.Log(diff);
+        }
 
         Logger.DisableInfo();
         return true;
@@ -89,5 +107,6 @@ public class Difference_Command : ICommand
         .Parameter("previous", "the backup to compare against. default is assumed to be the second latest backup.")
         .Parameter("current", "the backup to compare against the previous backup. default is the latest backup")
         .Parameter("files...", "the file names to display in the diff. supports glob matching. use '.' to pick field defaults: diff . . <files...>")
+        .Flag("l", "shows file content differences")
         .Flag("v", "logs all actions to show progress");
 }

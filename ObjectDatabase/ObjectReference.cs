@@ -14,7 +14,7 @@ public class ObjectReference
 
     public ObjectMetadata? Metadata { get; private set; }
 
-    public ObjectReference(string name, ObjectFormat format, Hash pointer)
+    private ObjectReference(string name, ObjectFormat format, Hash pointer)
     {
         FullName = name;
 
@@ -22,6 +22,25 @@ public class ObjectReference
         Format = format;
         Pointer = pointer;
     }
+
+
+
+    public static ObjectReference CreateBlob(string name, string pointerString) =>
+        CreateBlob(name, Hash.Parse(pointerString));
+
+    public static ObjectReference CreateBlob(string name, Hash pointer)
+    {
+        ObjectMetadata? metadata = Database.ReadObjectMetadata(pointer.ToString());
+        return new(name, ObjectFormat.BLOB, pointer)
+        {
+            Metadata = metadata
+        };
+    }
+
+    public static ObjectReference CreateTree(string name, Hash pointer) =>
+        new(name, ObjectFormat.TREE, pointer);
+
+
 
     public static bool TryParse(string contents, out ObjectReference? reference)
     {
@@ -44,7 +63,7 @@ public class ObjectReference
 
         reference = new(name, format.Value, pointer)
         {
-            Metadata = Database.ReadObjectMetadata(pointer)
+            Metadata = Database.ReadObjectMetadata(hashString)
         };
 
         return true;
