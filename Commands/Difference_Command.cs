@@ -36,32 +36,62 @@ public class Difference_Command : ICommand
         switch (args.Count)
         {
             case >= 3:
-                (previous, current) = (ExtractBackup(args[0], 1), ExtractBackup(args[1], 0));
+                previous = ExtractBackup(args[0]);
+                current = ExtractBackup(args[1]);
+
                 fileGlobs = args[2..];
+
                 break;
             case 2:
-                (previous, current) = (ExtractBackup(args[0]), ExtractBackup(args[1]));
+                previous = ExtractBackup(args[0]);
+                current = ExtractBackup(args[1]);
+
+                if (current is null)
+                {
+                    current = BackupDatabase.GetBackup(0);
+                    fileGlobs = args[1..];
+                }
+
                 break;
             case 1:
-                (previous, current) = (ExtractBackup(args[0]), BackupDatabase.GetBackup(0));
+                previous = ExtractBackup(args[0]);
+                current = BackupDatabase.GetBackup(0);
+
+                if (previous is null)
+                {
+                    previous = BackupDatabase.GetBackup(1);
+                    fileGlobs = args[0..];
+                }
+
                 break;
             case 0:
-                (previous, current) = (BackupDatabase.GetBackup(1), BackupDatabase.GetBackup(0));
+                previous = BackupDatabase.GetBackup(1);
+                current = BackupDatabase.GetBackup(0);
                 break;
         }
 
         if (previous is null)
         {
+            Logger.Log($"backup not found: {args[0]}");
+
+            Logger.DisableInfo();
+            return true;
+        }
+
+        if (current is null)
+        {
+            Logger.Log($"backup not found: {args[1]}");
+
             Logger.DisableInfo();
             return true;
         }
 
         int previousIndex = BackupDatabase.IndexOf(previous.Name);
-        int currentIndex = BackupDatabase.IndexOf(current!.Name);
+        int currentIndex = BackupDatabase.IndexOf(current.Name);
 
         List<Difference> differences = currentIndex == previousIndex - 1 // we store a cached diff already using the previous
-            ? DifferenceGenerator.Filter(current!.Differences, fileGlobs)
-            : DifferenceGenerator.FromBackup(previous, current!, fileGlobs);
+            ? DifferenceGenerator.Filter(current.Differences, fileGlobs)
+            : DifferenceGenerator.FromBackup(previous, current, fileGlobs);
 
         foreach (Difference difference in differences)
         {
@@ -88,17 +118,9 @@ public class Difference_Command : ICommand
         return true;
     }
 
-    private static BackupEntry? ExtractBackup(string backupName, int? fallbackIndex = null)
+    private static BackupEntry? ExtractBackup(string backupName)
     {
-        if (backupName == "." && fallbackIndex is not null)
-            return BackupDatabase.GetBackup(fallbackIndex.Value);
-
-        if (!BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup))
-        {
-            Logger.Log($"couldn't find backup '{backupName}'");
-            return null;
-        }
-
+        BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup);
         return backup;
     }
 
@@ -106,7 +128,7 @@ public class Difference_Command : ICommand
         .Description("displays the changes between 2 backup versions")
         .Parameter("previous", "the backup to compare against. default is assumed to be the second latest backup.")
         .Parameter("current", "the backup to compare against the previous backup. default is the latest backup")
-        .Parameter("files...", "the file names to display in the diff. supports glob matching. use '.' to pick field defaults: diff . . <files...>")
+        .Parameter("files...", "the file names to display in the diff. supports glob matching")
         .Flag("l", "shows file content differences")
         .Flag("v", "logs all actions to show progress");
 }
