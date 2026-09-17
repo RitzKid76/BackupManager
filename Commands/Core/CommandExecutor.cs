@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text;
 using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Configs;
@@ -77,7 +76,6 @@ public static class CommandExecutor
 
     public static void SendHelp(string? token = null)
     {
-
         if (
             token is not null &&
             TryGetCommand(token, out ICommand? command)
@@ -85,16 +83,30 @@ public static class CommandExecutor
         {
             CommandSyntax syntax = new(token);
 
-            Logger.Log(command!.GetSyntax(syntax).GenerateSyntax(true));
+            Logger.Colorize(command!.GetSyntax(syntax).GenerateSyntax(true), ColorMap);
             return;
         }
 
-        StringBuilder allHelp = new();
+        List<string> allHelp = [];
 
         foreach (KeyValuePair<string, Func<ICommand>> pair in commands)
-            allHelp.AppendLine(pair.Value.Invoke().GetSyntax(new(pair.Key)).GenerateSyntax());
+            allHelp.AddRange(pair.Value.Invoke().GetSyntax(new(pair.Key)).GenerateSyntax());
 
-        Logger.Log(allHelp.ToString());
+        Logger.Colorize(allHelp, ColorMap);
+    }
+
+    private static ConsoleColor? ColorMap(string line)
+    {
+        if (line.StartsWith('-'))
+            return ConsoleColor.DarkBlue;
+
+        if (line.StartsWith('|'))
+            return null;
+
+        if (!line.StartsWith(' '))
+            return ConsoleColor.Cyan;
+
+        return null;
     }
 
     private static bool TryGetCommand(string token, out ICommand? command)

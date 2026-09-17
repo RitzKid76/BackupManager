@@ -151,7 +151,7 @@ public static class BackupDatabase
         }
 
         foreach (Difference change in changesSinceBackup)
-            Logger.Log(change.DiffString());
+            Logger.Colorize(change.DiffStringList(), Difference.ColorMap);
 
         bool confirmation = Logger.Confirm($"the changes above will be applied on restore. your current state has been saved as '{latestStateName}'\nare you sure you want to restore to backup '{backupName}'?");
         if (!confirmation)

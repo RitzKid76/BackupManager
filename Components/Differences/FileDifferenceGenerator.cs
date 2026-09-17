@@ -162,6 +162,15 @@ public static class FileDifferenceGenerator
         return new DiffHunk(oldStart, oldCount, newStart, newCount, hunkOperations);
     }
 
+    public static ConsoleColor? ColorMap(string line) => line[0] switch
+    {
+        ' ' => ConsoleColor.Gray,
+        '+' => ConsoleColor.Green,
+        '-' => ConsoleColor.Red,
+        '@' => ConsoleColor.Magenta,
+        _ => null
+    };
+
 
 
     private enum DiffOperationType

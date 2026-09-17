@@ -33,36 +33,37 @@ public class CommandSyntax
         return this;
     }
 
-    public string GenerateSyntax(bool includeDescriptionHeader = false)
+    public List<string> GenerateSyntax(bool includeDescriptionHeader = false)
     {
-        StringBuilder output = new();
+        List<string> output = [];
         string indent = string.Empty;
 
         if (includeDescriptionHeader && !string.IsNullOrEmpty(description))
         {
-            output.AppendLine(new string('-', 80));
-            output.AppendLine(description);
-            output.AppendLine(new string('-', 80));
-
             indent = "|   ";
+
+            output.Add(new string('-', 80));
+            output.Add(description);
+            output.Add(new string('-', 80));
         }
 
-        output.Append($"{indent}{token} ");
+        StringBuilder builder = new();
+        builder.Append($"{indent}{token} ");
 
         foreach (CommandParameter parameter in parameters)
-            output.Append($"{parameter.GetName()} ");
+            builder.Append($"{parameter.GetName()} ");
 
         if (flags.Count > 0)
-            output.Append("[flags...]");
+            builder.Append("[flags...]");
 
-        output.AppendLine();
+        output.Add(builder.ToString());
 
         foreach (CommandParameter parameter in parameters)
-            output.AppendLine($"{indent}{parameter}");
+            output.Add($"{indent}{parameter}");
 
         foreach (CommandFlag flag in flags)
-            output.AppendLine($"{indent}{flag}");
+            output.Add($"{indent}{flag}");
 
-        return output.ToString();
+        return output;
     }
 }

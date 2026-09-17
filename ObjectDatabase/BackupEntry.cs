@@ -66,7 +66,8 @@ public class BackupEntry
         StringBuilder output = new();
 
         foreach (Difference difference in Differences)
-            output.AppendLine(difference.DiffString());
+            foreach (string line in difference.DiffStringList())
+                output.AppendLine(line);
 
         return output.ToString();
     }

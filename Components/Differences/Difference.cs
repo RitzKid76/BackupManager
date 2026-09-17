@@ -78,24 +78,24 @@ public class Difference
         return new(type, previous, current);
     }
 
-    public string DiffString()
+    public List<string> DiffStringList()
     {
-        StringBuilder output = new();
+        List<string> output = [];
 
-        output.Append($"{Type.GetTypeChar()} ");
+        char type = Type.GetTypeChar();
 
         if (Type == DifferenceType.RENAME)
-            output.Append($"{Previous!.FullName} > {Current!.FullName}");
+            output.Add($"{type} {Previous!.FullName} > {Current!.FullName}");
 
         else if (
             Type == DifferenceType.CHANGE ||
             Type == DifferenceType.ADDITION
-        ) output.Append(Current!.FullName);
+        ) output.Add($"{type} {Current!.FullName}");
 
         else if (Type == DifferenceType.REMOVAL)
-            output.Append(Previous!.FullName);
+            output.Add($"{type} {Previous!.FullName}");
 
-        return output.ToString();
+        return output;
     }
 
     public void Apply()
@@ -114,6 +114,15 @@ public class Difference
                 break;
         }
     }
+
+    public static ConsoleColor? ColorMap(string line) => line[0] switch
+    {
+        '~' => ConsoleColor.Yellow,
+        '+' => ConsoleColor.Green,
+        '-' => ConsoleColor.Red,
+        '#' => ConsoleColor.Magenta,
+        _ => null
+    };
 
     public override string ToString()
     {
