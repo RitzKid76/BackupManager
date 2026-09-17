@@ -164,7 +164,7 @@ public static class FileDifferenceGenerator
 
     public static ConsoleColor? ColorMap(string line) => line[0] switch
     {
-        ' ' => ConsoleColor.Gray,
+        ' ' => ConsoleColor.DarkGray,
         '+' => ConsoleColor.Green,
         '-' => ConsoleColor.Red,
         '@' => ConsoleColor.Magenta,
