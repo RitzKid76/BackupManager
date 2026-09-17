@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace Backup.Components;
 
 public static class Logger
@@ -12,39 +10,32 @@ public static class Logger
     public static void EnableInfo() =>
         enabled = true;
 
-    public static void Info(params object[] inputs)
+    public static void Info(object input)
     {
-        if (!enabled)
-            return;
-
-        foreach (object input in inputs)
-            Console.WriteLine(input);
+        if (enabled)
+            Log(input);
     }
 
-    public static void LogPartial(params object[] inputs)
-    {
-        foreach (object input in inputs)
-            Console.Write(input);
-    }
+    public static void LogPartial(object input) =>
+        Console.Write(input);
 
-    public static void Log(params object[] inputs)
+    public static void Log(object input) =>
+        Console.WriteLine(input);
+
+    public static void Colorize(IEnumerable<string> inputs, Func<string, ConsoleColor?> mapping)
     {
-        if (inputs.Length == 1)
+        foreach (string input in inputs)
         {
-            Console.WriteLine(inputs[0]);
-            return;
+            ConsoleColor? color = mapping(input);
+            if (color is null)
+                Console.ResetColor();
+            else
+                Console.ForegroundColor = color.Value;
+
+            Console.WriteLine(input);
         }
 
-        foreach (object input in inputs)
-            Console.Write($"{input}, ");
-
-        Console.WriteLine();
-    }
-
-    public static void Log(ICollection inputs)
-    {
-        foreach (object input in inputs)
-            Log(input);
+        Console.ResetColor();
     }
 
     public static string? Prompt(string prompt)

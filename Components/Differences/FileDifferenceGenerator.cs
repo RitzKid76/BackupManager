@@ -1,10 +1,8 @@
-using System.Text;
-
 namespace Backup.Components.Differences;
 
 public static class FileDifferenceGenerator
 {
-    public static string DiffContents(string[] previous, string[] current, int contextLines = 3)
+    public static List<string> DiffContents(string[] previous, string[] current, int contextLines = 3)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(contextLines);
 
@@ -14,38 +12,31 @@ public static class FileDifferenceGenerator
         return FormatUnifiedDiff(hunks);
     }
 
-    private static string FormatUnifiedDiff(List<DiffHunk> hunks)
+    private static List<string> FormatUnifiedDiff(List<DiffHunk> hunks)
     {
-        StringBuilder builder = new();
+        List<string> output = [];
 
         foreach (DiffHunk hunk in hunks)
         {
-            builder.Append("@@ -");
-            builder.Append(hunk.OldStart);
-            builder.Append(',');
-            builder.Append(hunk.OldCount);
-            builder.Append(" +");
-            builder.Append(hunk.NewStart);
-            builder.Append(',');
-            builder.Append(hunk.NewCount);
-            builder.AppendLine(" @@");
+            string marker = $"@@ -{hunk.OldStart},{hunk.OldCount}, +{hunk.NewStart},{hunk.NewCount} @@";
+            output.Add(marker);
 
             foreach (DiffOperation operation in hunk.Operations)
             {
-                string prefix = operation.Type switch
+                char prefix = operation.Type switch
                 {
-                    DiffOperationType.Equal => "    ",
-                    DiffOperationType.Insert => "+   ",
-                    DiffOperationType.Delete => "-   ",
+                    DiffOperationType.Equal => ' ',
+                    DiffOperationType.Insert => '+',
+                    DiffOperationType.Delete => '-',
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                builder.Append(prefix);
-                builder.AppendLine(operation.Text);
+                string diffLine = $"{prefix}   {operation.Text}";
+                output.Add(diffLine);
             }
         }
 
-        return builder.ToString();
+        return output;
     }
 
     private static List<DiffOperation> BuildOperations(string[] oldLines, string[] newLines)

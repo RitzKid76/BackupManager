@@ -110,8 +110,8 @@ public class Difference_Command : ICommand
                 ? Database.ReadFile(currentObject)
                 : [];
 
-            string diff = FileDifferenceGenerator.DiffContents(previousData, currentData);
-            Logger.Log(diff);
+            List<string> diff = FileDifferenceGenerator.DiffContents(previousData, currentData);
+            Logger.Colorize(diff, DiffColorMap);
         }
 
         Logger.DisableInfo();
@@ -123,6 +123,15 @@ public class Difference_Command : ICommand
         BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup);
         return backup;
     }
+
+    private static ConsoleColor? DiffColorMap(string line) => line[0] switch
+    {
+        ' ' => ConsoleColor.Gray,
+        '+' => ConsoleColor.Green,
+        '-' => ConsoleColor.Red,
+        '@' => ConsoleColor.DarkYellow,
+        _ => null
+    };
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("displays the changes between 2 backup versions")
