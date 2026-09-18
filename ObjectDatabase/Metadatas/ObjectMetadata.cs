@@ -10,6 +10,6 @@ public record ObjectMetadata(bool Compressed)
         new(contents[0] == "C");
 
     public override string ToString() => Compressed
-            ? "C"
-            : "U";
+        ? "C"
+        : "U";
 }

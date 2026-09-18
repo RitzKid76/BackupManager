@@ -36,11 +36,15 @@ public class PathMetadata
             long lastWriteTime = long.Parse(contents[1]);
             Hash cachedPointer = Hash.Parse(contents[2]);
 
-            pathMetadata = new(path, lastWriteTime, cachedPointer);
+            Hash? metadataPointer = Database.ObjectExists(cachedPointer)
+                ? cachedPointer
+                : null;
+
+            pathMetadata = new(path, lastWriteTime, metadataPointer);
 
             return true;
         }
-        catch (Exception)
+        catch
         {
             return false;
         }

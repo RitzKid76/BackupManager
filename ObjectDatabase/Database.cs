@@ -74,6 +74,12 @@ public static class Database
         }
     }
 
+    public static bool ObjectExists(Hash pointer)
+    {
+        (_, string databasePath) = GetDatabaseAddress(pointer.ToString());
+        return File.Exists(databasePath);
+    }
+
 
 
     public static ObjectReference? WriteFile(FileInfo file, bool withPrefix)
@@ -285,6 +291,9 @@ public static class Database
 
         string[] contents = File.ReadAllLines(databasePath);
         PathMetadata.TryParse(contents, out PathMetadata? output);
+
+        if (output?.CachedPointer is null)
+            return null;
 
         return output;
     }
