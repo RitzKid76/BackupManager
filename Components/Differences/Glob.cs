@@ -1,51 +1,32 @@
-using System.Text;
-using System.Text.RegularExpressions;
+using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace Backup.Components.Differences;
 
 public static class Glob
 {
-    public static bool Matches(string input, string pattern)
+    public static bool Matches(string input, string glob)
     {
         input = Normalize(input);
-        pattern = Normalize(pattern);
+        glob = Normalize(glob);
 
-        if (!IsGlob(pattern))
-            return input.Contains(pattern, StringComparison.OrdinalIgnoreCase);
+        string? directory = Path.GetDirectoryName(input);
+        if (string.IsNullOrEmpty(directory))
+            directory = ".";
 
-        string regexPattern = ConvertToRegex(pattern);
-        return Regex.IsMatch(input, regexPattern, RegexOptions.IgnoreCase);
+        string fileName = Path.GetFileName(input);
+
+        Matcher matcher = new();
+        matcher.AddInclude(glob);
+
+        PatternMatchingResult result = matcher.Match(directory, fileName);
+
+        return result.HasMatches;
     }
 
-    private static bool IsGlob(string path) =>
+    public static bool IsGlob(string path) =>
         path.Contains('*') ||
         path.Contains('?');
 
     private static string Normalize(string path) =>
         path.Replace('\\', '/');
-
-    private static string ConvertToRegex(string glob)
-    {
-        StringBuilder regex = new();
-
-        foreach (char character in glob)
-        {
-            switch (character)
-            {
-                case '*':
-                    regex.Append(".*");
-                    break;
-
-                case '?':
-                    regex.Append('.');
-                    break;
-
-                default:
-                    regex.Append(Regex.Escape(character.ToString()));
-                    break;
-            }
-        }
-
-        return regex.ToString();
-    }
 }

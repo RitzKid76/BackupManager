@@ -151,9 +151,22 @@ public static class DifferenceGenerator
     private static bool MatchesAnyPath(string name, List<string> paths)
     {
         foreach (string path in paths)
-            if (Glob.Matches(name, path))
+            if (MatchesPath(name, path))
                 return true;
 
         return false;
+    }
+
+    private static bool MatchesPath(string path, string pattern)
+    {
+        path = path.Replace('/', '\\');
+        pattern = pattern.Replace('/', '\\');
+
+        if (Glob.IsGlob(pattern))
+            return Glob.Matches(path, pattern);
+
+        string fileName = Path.GetFileName(path);
+
+        return fileName.Equals(pattern, StringComparison.OrdinalIgnoreCase);
     }
 }
