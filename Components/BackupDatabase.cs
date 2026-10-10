@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Backup.Components.Differences;
 using Backup.Configs;
 using Backup.ObjectDatabase;
+using Backup.ObjectDatabase.Hashing;
 
 namespace Backup.Components;
 
@@ -249,6 +250,25 @@ public static class BackupDatabase
 
         CleanupHandler.EndWork();
         return true;
+    }
+
+    public static IEnumerable<FileVersion> GetFileVersions(string path)
+    {
+        IEnumerable<BackupEntry> backups = GetBackups();
+        Dictionary<Hash, BackupEntry> versions = [];
+
+        foreach (BackupEntry backup in backups.Reverse())
+        {
+            ObjectReference? reference = backup.FindReferenceByPath(path);
+            if (reference is null)
+                continue;
+
+            versions.TryAdd(reference.Pointer, backup);
+        }
+
+        return versions
+            .OrderByDescending(p => p.Value.CreationTime)
+            .Select(p => new FileVersion(p.Key, p.Value));
     }
 
     private static string DefaultName() =>

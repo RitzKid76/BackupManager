@@ -17,18 +17,7 @@ public class Versions_Command : ICommand
         string path = args[0];
         path = path.ToLower();
 
-        IEnumerable<BackupEntry> backups = BackupDatabase.GetBackups();
-        Dictionary<string, BackupEntry> versions = [];
-
-        foreach (BackupEntry backup in backups.Reverse())
-        {
-            ObjectReference? reference = backup.FindReferenceByPath(path);
-            if (reference is null)
-                continue;
-
-            string pointer = reference.Pointer.ToString();
-            versions.TryAdd(pointer, backup);
-        }
+        List<FileVersion> versions = BackupDatabase.GetFileVersions(path).ToList();
 
         int versionCount = versions.Count;
         if (versionCount == 0)
@@ -39,12 +28,8 @@ public class Versions_Command : ICommand
 
         Logger.Log($"found {versionCount} versions for path '{path}'");
 
-        IEnumerable<string> lines = versions
-            .OrderByDescending(p => p.Value.CreationTime)
-            .Select(p => $"{p.Key} - {p.Value.GetCreationTimeString()}");
-
-        foreach (string line in lines)
-            Logger.Log(line);
+        foreach (FileVersion version in versions)
+            Logger.Log(version);
 
         return true;
     }
