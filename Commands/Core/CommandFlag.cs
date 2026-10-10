@@ -1,5 +1,3 @@
-using Backup.Extensions;
-
 namespace Backup.Commands.Core;
 
 public record CommandFlag(string Flag, string Description, Type? ValueType)
@@ -10,7 +8,7 @@ public record CommandFlag(string Flag, string Description, Type? ValueType)
         if (ValueType is Type type)
         {
             start = $"--{Flag} {type}";
-            return $"    {start.PadString(CommandSyntax.PADDING)}{Description}";
+            return $"    {start,-CommandSyntax.PADDING}{Description}";
         }
 
         string dash = Flag.Length > 1
@@ -18,6 +16,6 @@ public record CommandFlag(string Flag, string Description, Type? ValueType)
             : "-";
 
         start = $"{dash}{Flag}";
-        return $"    {start.PadString(CommandSyntax.PADDING)}{Description}";
+        return $"    {start,-CommandSyntax.PADDING}{Description}";
     }
 }

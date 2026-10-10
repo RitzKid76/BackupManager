@@ -41,8 +41,8 @@ public class List_Command : ICommand
 
         output.AppendLine(new string('-', 80));
 
-        string creationTimeString = DateTimeOffset.FromUnixTimeMilliseconds(backup.CreationTime).LocalDateTime.ToString("f");
-        output.Append(creationTimeString.PadString(48));
+        string creationTimeString = backup.GetCreationTimeString();
+        output.Append(creationTimeString.PadRight(48));
 
         output.Append(backup.Name);
 

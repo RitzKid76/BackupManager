@@ -72,6 +72,18 @@ public class BackupEntry
         return output.ToString();
     }
 
+    public ObjectReference? FindReferenceByPath(string path)
+    {
+        foreach (ObjectReference reference in References)
+            if (reference.FindReferenceByPath(path) is ObjectReference output)
+                return output;
+
+        return null;
+    }
+
+    public string GetCreationTimeString() =>
+        DateTimeOffset.FromUnixTimeMilliseconds(CreationTime).LocalDateTime.ToString("f");
+
     public override string ToString()
     {
         StringBuilder output = new();

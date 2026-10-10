@@ -42,6 +42,25 @@ public class ObjectReference
 
 
 
+    public ObjectReference? FindReferenceByPath(string path)
+    {
+        if (!path.StartsWith(FullName))
+            return null;
+
+        if (FullName == path)
+            return this;
+
+        Tree tree = Database.ReadTree(this);
+
+        foreach (ObjectReference reference in tree.References)
+            if (reference.FindReferenceByPath(path) is ObjectReference output)
+                return output;
+
+        return null;
+    }
+
+
+
     public static bool TryParse(string contents, out ObjectReference? reference)
     {
         reference = null;
