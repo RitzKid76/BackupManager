@@ -50,9 +50,10 @@ public class ObjectReference
         if (FullName == path)
             return this;
 
-        Tree tree = Database.ReadTree(this);
+        if (!Database.TryReadTree(this, out Tree? tree))
+            return null;
 
-        foreach (ObjectReference reference in tree.References)
+        foreach (ObjectReference reference in tree!.References)
             if (reference.FindReferenceByPath(path) is ObjectReference output)
                 return output;
 

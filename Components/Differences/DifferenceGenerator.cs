@@ -49,7 +49,10 @@ public static class DifferenceGenerator
                 break;
 
             case ObjectFormat.TREE:
-                DiffReferences(output, Database.ReadTree(previous).References.ToList(), Database.ReadTree(current).References, r => r.Name);
+                Database.TryReadTree(previous, out Tree? previousTree);
+                Database.TryReadTree(current, out Tree? currentTree);
+
+                DiffReferences(output, previousTree!.References.ToList(), currentTree!.References, r => r.Name);
                 break;
         }
     }
@@ -62,8 +65,8 @@ public static class DifferenceGenerator
             return;
         }
 
-        Tree tree = Database.ReadTree(reference);
-        foreach (ObjectReference child in tree.References)
+        Database.TryReadTree(reference, out Tree? tree);
+        foreach (ObjectReference child in tree!.References)
             AddRecursive(output, child);
     }
 
@@ -75,8 +78,8 @@ public static class DifferenceGenerator
             return;
         }
 
-        Tree tree = Database.ReadTree(reference);
-        foreach (ObjectReference child in tree.References)
+        Database.TryReadTree(reference, out Tree? tree);
+        foreach (ObjectReference child in tree!.References)
             RemoveRecursive(output, child);
     }
 

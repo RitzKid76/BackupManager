@@ -35,19 +35,23 @@ public class Tree
     public void AddReference(ObjectReference reference) =>
         references.Add(reference);
 
-    public static Tree Parse(string fullName, string name, string[] contents)
+    public static bool TryParse(string fullName, string name, string[] contents, out Tree? output)
     {
+        output = null;
+
         List<ObjectReference> references = [];
         foreach (string line in contents)
         {
-            ObjectReference.TryParse(line, out ObjectReference? reference);
+            if (!ObjectReference.TryParse(line, out ObjectReference? reference))
+                return false;
+
             references.Add(reference!);
         }
 
-        Tree output = new(fullName, name, references);
+        output = new(fullName, name, references);
         output.PrependReferences();
 
-        return output;
+        return true;
     }
 
     private void PrependReferences()

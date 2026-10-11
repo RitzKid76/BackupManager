@@ -81,9 +81,9 @@ public static class GarbageCollector
 
     private static void SkipTree(ObjectReference reference)
     {
-        Tree tree = Database.ReadTree(reference);
+        Database.TryReadTree(reference, out Tree? tree);
 
-        foreach (ObjectReference r in tree.References)
+        foreach (ObjectReference r in tree!.References)
             SkipReferenceHashes(r);
     }
 

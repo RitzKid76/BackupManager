@@ -225,15 +225,25 @@ public static class Database
         return output;
     }
 
-    public static Tree ReadTree(ObjectReference reference)
+    public static bool TryReadTree(ObjectReference reference, out Tree? output)
     {
+        output = null;
+
         if (reference.Format != ObjectFormat.TREE)
-            throw new ArgumentException($"Expected {typeof(Tree)} but found {reference.Format}");
+            return false;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
 
         string[] contents = File.ReadAllLines(databasePath);
-        return Tree.Parse(reference.FullName, reference.Name, contents);
+        return Tree.TryParse(reference.FullName, reference.Name, contents, out output);
+    }
+
+    public static bool TryReadUnknownTree(string pointer, out Tree? output)
+    {
+        (_, string databasePath) = GetDatabaseAddress(pointer);
+
+        string[] contents = File.ReadAllLines(databasePath);
+        return Tree.TryParse(string.Empty, string.Empty, contents, out output);
     }
 
 
