@@ -44,10 +44,12 @@ public class ObjectReference
 
     public ObjectReference? FindReferenceByPath(string path)
     {
-        if (!path.StartsWith(FullName))
+        string referencePath = FullName.ToLower();
+
+        if (!path.StartsWith(referencePath))
             return null;
 
-        if (FullName == path)
+        if (referencePath == path)
             return this;
 
         if (!Database.TryReadTree(this, out Tree? tree))
