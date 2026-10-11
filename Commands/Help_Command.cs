@@ -8,9 +8,7 @@ public class Help_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        List<string> args = argSet.GetArguments();
-
-        string? command = args.Count > 0
+        string? command = argSet.HasArgs(out List<string> args)
             ? args[0]
             : null;
 

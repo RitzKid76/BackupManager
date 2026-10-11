@@ -49,6 +49,9 @@ public static class CommandExecutor
 
         ArgumentSet argSet = ArgumentSet.Create(args[1..]);
 
+        if (argSet.HasFlag("v"))
+            Logger.EnableInfo();
+
         try
         {
             bool result = command!.Execute(argSet);
@@ -72,6 +75,8 @@ public static class CommandExecutor
             string exception = PrettyStacktrace.Get(e);
             Logger.Log(exception);
         }
+
+        Logger.DisableInfo();
     }
 
     public static void SendHelp(string? token = null)

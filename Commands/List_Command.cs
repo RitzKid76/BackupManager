@@ -2,7 +2,6 @@ using System.Text;
 using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
-using Backup.Extensions;
 using Backup.ObjectDatabase;
 
 namespace Backup.Commands;
@@ -12,8 +11,7 @@ public class List_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        List<string> args = argSet.GetArguments();
-        if (args.Count > 0)
+        if (argSet.HasArgs(out List<string> args))
         {
             string backupName = args[0];
 

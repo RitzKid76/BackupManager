@@ -24,10 +24,7 @@ public class Difference_Command : ICommand
             return true;
         }
 
-        if (argSet.HasFlag("v"))
-            Logger.EnableInfo();
-
-        List<string> args = argSet.GetArguments();
+        argSet.HasArgs(out List<string> args);
 
         BackupEntry? previous = null;
         BackupEntry? current = null;
@@ -73,16 +70,12 @@ public class Difference_Command : ICommand
         if (previous is null)
         {
             Logger.Log($"backup not found: {args[0]}");
-
-            Logger.DisableInfo();
             return true;
         }
 
         if (current is null)
         {
             Logger.Log($"backup not found: {args[1]}");
-
-            Logger.DisableInfo();
             return true;
         }
 
@@ -114,7 +107,6 @@ public class Difference_Command : ICommand
             Logger.Colorize(diff, FileDifferenceGenerator.ColorMap);
         }
 
-        Logger.DisableInfo();
         return true;
     }
 
@@ -130,5 +122,5 @@ public class Difference_Command : ICommand
         .Parameter("current", "the backup to compare against the previous backup. default is the latest backup")
         .Parameter("files...", "the file names to display in the diff. supports glob matching")
         .Flag("l", "shows file content differences")
-        .Flag("v", "logs all actions to show progress");
+        .SupportsVerbosity();
 }

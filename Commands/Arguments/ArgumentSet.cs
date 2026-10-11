@@ -86,8 +86,11 @@ public class ArgumentSet
         return output;
     }
 
-    public List<string> GetArguments() =>
-        arguments;
+    public bool HasArgs(out List<string> args, int minRequired = 1)
+    {
+        args = arguments;
+        return arguments.Count >= minRequired;
+    }
 
     public bool HasFlag(string flag) =>
         flags.ContainsKey(flag);

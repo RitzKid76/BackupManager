@@ -33,6 +33,9 @@ public class CommandSyntax
         return this;
     }
 
+    public CommandSyntax SupportsVerbosity() =>
+        Flag("v", "logs all actions to show progress");
+
     public List<string> GenerateSyntax(bool includeDescriptionHeader = false)
     {
         List<string> output = [];

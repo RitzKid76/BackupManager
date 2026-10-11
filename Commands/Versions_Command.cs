@@ -10,8 +10,7 @@ public class Versions_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        List<string> args = argSet.GetArguments();
-        if (args.Count == 0)
+        if (argSet.HasArgs(out List<string> args))
             return false;
 
         string path = args[0];
@@ -38,5 +37,6 @@ public class Versions_Command : ICommand
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("returns stored versions for a given file or folder tree")
-        .Parameter("file_path", "the path of the file to check stored versions for");
+        .Parameter("file_path", "the path of the file to check stored versions for")
+        .SupportsVerbosity();
 }

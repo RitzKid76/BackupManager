@@ -11,8 +11,7 @@ public class Info_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        List<string> args = argSet.GetArguments();
-        if (args.Count == 0)
+        if (!argSet.HasArgs(out List<string> args))
             return false;
 
         string pointer = args[0];
@@ -59,5 +58,6 @@ public class Info_Command : ICommand
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax
         .Description("gets information about a given object pointer")
-        .Parameter("pointer", "the pointer to get information for");
+        .Parameter("pointer", "the pointer to get information for")
+        .SupportsVerbosity();
 }
