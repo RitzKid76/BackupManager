@@ -18,7 +18,7 @@ public static class Database
     {
         string hashString = hash.ToString();
 
-        Logger.Info($"deleting: {hashString}");
+        Logger.InfoColorize($"deleting: {hashString}", ConsoleColor.Red);
 
         (string folder, string path) = GetDatabaseAddress(hashString);
         File.Delete(path);
@@ -26,7 +26,7 @@ public static class Database
         (string metaFolder, string metaPath) = GetMetaDatabaseAddress(hashString);
         if (File.Exists(metaPath))
         {
-            Logger.Info($"deleting: {hashString} object metadata");
+            Logger.InfoColorize($"deleting: {hashString} object metadata", ConsoleColor.DarkRed);
             File.Delete(metaPath);
         }
 
@@ -116,7 +116,7 @@ public static class Database
 
         if (noChanges)
         {
-            Logger.Info($"*skipping: {hash} {file.FullName}");
+            Logger.InfoColorize($"*skipping: {hash} {file.FullName}", ConsoleColor.DarkGray);
             return output;
         }
 
@@ -143,7 +143,7 @@ public static class Database
 
         if (File.Exists(databasePath))
         {
-            Logger.Info($" skipping: {reference.Pointer} {file.FullName}");
+            Logger.InfoColorize($" skipping: {reference.Pointer} {file.FullName}", ConsoleColor.DarkGray);
             return reference;
         }
 
@@ -152,11 +152,11 @@ public static class Database
         {
             if (File.Exists(databasePath))
             {
-                Logger.Info($" skipping: {reference.Pointer} {file.FullName}");
+                Logger.InfoColorize($" skipping: {reference.Pointer} {file.FullName}", ConsoleColor.DarkGray);
                 return reference;
             }
 
-            Logger.Info($"  writing: {reference.Pointer} {file.FullName}");
+            Logger.InfoColorize($"  writing: {reference.Pointer} {file.FullName}", ConsoleColor.Green);
             Directory.CreateDirectory(databaseFolder);
 
             bool isCompressed = GZIP.Write(file, databasePath);
@@ -190,7 +190,7 @@ public static class Database
         string path = reference.FullName;
 
         (_, string databasePath) = GetDatabaseAddress(reference.Pointer.ToString());
-        Logger.Info($"restoring: {path}");
+        Logger.InfoColorize($"restoring: {path}", ConsoleColor.Magenta);
 
         FileInfo file = new(databasePath);
 
@@ -279,7 +279,7 @@ public static class Database
 
     public static void WritePathMetadata(PathMetadata metadata)
     {
-        Logger.Info($"  writing: {metadata.CachedPointer} {metadata.Path} path metadata");
+        Logger.InfoColorize($"  writing: {metadata.CachedPointer} {metadata.Path} path metadata", ConsoleColor.DarkGreen);
 
         Hash hash = Hash.Create(metadata.Path);
         (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(hash.ToString());
@@ -318,13 +318,13 @@ public static class Database
         if (Directory.EnumerateFiles(databaseFolder).Any())
             return;
 
-        Logger.Info($"deleting: {metadata.CachedPointer} path metadata");
+        Logger.InfoColorize($"deleting: {metadata.CachedPointer} path metadata", ConsoleColor.DarkRed);
         Directory.Delete(databaseFolder);
     }
 
     public static void WriteObjectMetadata(Hash pointer, ObjectMetadata metadata)
     {
-        Logger.Info($"  writing: {pointer} object metadata");
+        Logger.InfoColorize($"  writing: {pointer} object metadata", ConsoleColor.DarkGreen);
 
         (string databaseFolder, string databasePath) = GetMetaDatabaseAddress(pointer.ToString());
         Directory.CreateDirectory(databaseFolder);

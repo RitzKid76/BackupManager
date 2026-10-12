@@ -46,7 +46,7 @@ public static class CleanupHandler
     {
         running = true;
 
-        Logger.Info("cleaning up...");
+        Logger.InfoColorize("cleaning up...", ConsoleColor.Magenta);
 
         Compressor.Run();
 

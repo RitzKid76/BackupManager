@@ -65,7 +65,7 @@ public static class Compressor
 
     public static void Run()
     {
-        Logger.Info("compressing...");
+        Logger.InfoColorize("compressing...", ConsoleColor.Magenta);
 
         PopulateBuckets();
         TrimBuckets();
@@ -73,7 +73,7 @@ public static class Compressor
 
     private static void PopulateBuckets()
     {
-        Logger.Info("populating buckets...");
+        Logger.InfoColorize("populating buckets...", ConsoleColor.Magenta);
         buckets.Clear();
         long timeOfCompression = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -91,7 +91,7 @@ public static class Compressor
             if (timePassed < bucketTime)
                 continue;
 
-            Logger.Info($"{bucketTimes[i].Item2} -> {backup.Name}");
+            Logger.InfoColorize($"{bucketTimes[i].Item2} -> {backup.Name}", ConsoleColor.Blue);
             buckets.GetValueOrAdd(bucketTime, () => []).Add(backup.Name);
 
             return;
@@ -100,7 +100,7 @@ public static class Compressor
 
     private static void TrimBuckets()
     {
-        Logger.Info("trimming buckets...");
+        Logger.InfoColorize("trimming buckets...", ConsoleColor.Magenta);
 
         //              dont touch the spacer bucket VVV
         foreach (long bucketTime in bucketTimes.Skip(1).Select(b => b.Item1))

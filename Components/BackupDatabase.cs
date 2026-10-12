@@ -40,7 +40,7 @@ public static class BackupDatabase
 
     private static void TrackBackup(BackupEntry backup)
     {
-        Logger.Info("tracking backup...");
+        Logger.InfoColorize("tracking backup...", ConsoleColor.Magenta);
         Dictionary<int, BackupEntry> newBackupsByIndex = [];
         foreach (KeyValuePair<int, BackupEntry> pair in backupsByIndex)
             newBackupsByIndex[pair.Key + 1] = pair.Value;

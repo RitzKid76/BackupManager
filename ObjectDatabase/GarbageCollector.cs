@@ -16,7 +16,7 @@ public static class GarbageCollector
 
     public static void Run()
     {
-        Logger.Info("garbage collecting...");
+        Logger.InfoColorize("garbage collecting...", ConsoleColor.Magenta);
 
         TrashObjects();
         TrashMeta();
@@ -33,10 +33,10 @@ public static class GarbageCollector
 
         trackedPaths.Clear();
 
-        Logger.Info("loading objects...");
+        Logger.InfoColorize("loading objects...", ConsoleColor.Magenta);
         foreach (Hash hash in Database.GetAllPointers())
         {
-            Logger.Info($"loading: {hash}");
+            Logger.InfoColorize($"loading: {hash}", ConsoleColor.DarkGray);
             toRemove.Add(hash);
         }
 
@@ -46,7 +46,7 @@ public static class GarbageCollector
 
     private static void SkipExistingBackupHashes()
     {
-        Logger.Info("tracking objects...");
+        Logger.InfoColorize("tracking objects...", ConsoleColor.Magenta);
         foreach (BackupEntry backup in BackupDatabase.GetBackups())
             foreach (ObjectReference reference in backup.References)
                 SkipReferenceHashes(reference);
@@ -57,7 +57,7 @@ public static class GarbageCollector
         if (!toRemove.Remove(reference.Pointer))
         {
             if (seen.Contains(reference.Pointer))
-                Logger.Info($"skipping: {reference.Pointer} {reference.FullName}");
+                Logger.InfoColorize($"skipping: {reference.Pointer} {reference.FullName}", ConsoleColor.DarkGray);
             else
                 missing.Add(reference);
 
@@ -66,7 +66,7 @@ public static class GarbageCollector
 
         seen.Add(reference.Pointer);
 
-        Logger.Info($"tracking: {reference.Pointer} {reference.FullName}");
+        Logger.InfoColorize($"tracking: {reference.Pointer} {reference.FullName}", ConsoleColor.DarkGray);
 
         switch (reference.Format)
         {
@@ -89,7 +89,7 @@ public static class GarbageCollector
 
     private static void RemoveExtras()
     {
-        Logger.Info("deleting objects...");
+        Logger.InfoColorize("deleting objects...", ConsoleColor.Magenta);
         foreach (Hash hash in toRemove)
             Database.Delete(hash);
     }
@@ -98,13 +98,13 @@ public static class GarbageCollector
 
     private static void TrashMeta()
     {
-        Logger.Info("checking metadata...");
+        Logger.InfoColorize("checking metadata...", ConsoleColor.Magenta);
         foreach (PathMetadata metadata in Database.GetAllPathMetas())
         {
             if (!trackedPaths.Contains(metadata.Path))
                 Database.DeletePathMetadata(metadata);
             else
-                Logger.Info($"skipping: {metadata.CachedPointer} {metadata.Path} path metadata");
+                Logger.InfoColorize($"skipping: {metadata.CachedPointer} {metadata.Path} path metadata", ConsoleColor.DarkGray);
         }
     }
 

@@ -48,7 +48,7 @@ public class BackupEntry
 
     public void RegenerateDifference()
     {
-        Logger.Info("regenerating diff...");
+        Logger.InfoColorize("regenerating diff...", ConsoleColor.Magenta);
         if (BackupDatabase.Count() == 0)
             return;
 

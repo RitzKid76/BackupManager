@@ -16,8 +16,11 @@ public static class Logger
             Log(input);
     }
 
-    public static void LogPartial(object input) =>
-        Console.Write(input);
+    public static void InfoColorize(string input, ConsoleColor color)
+    {
+        if (enabled)
+            Colorize(input, color);
+    }
 
     public static void Log(object input) =>
         Console.WriteLine(input);
@@ -48,7 +51,7 @@ public static class Logger
 
     public static string? Prompt(string prompt)
     {
-        LogPartial($"{prompt} ");
+        Console.Write($"{prompt} ");
         return Console.ReadLine();
     }
 
