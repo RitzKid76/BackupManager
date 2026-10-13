@@ -14,13 +14,13 @@ public class Difference_Command : ICommand
         int backupCount = BackupDatabase.Count();
         if (backupCount == 0)
         {
-            Logger.Log("no backups found");
+            Logger.Colorize("no backups found", ConsoleColor.Red);
             return true;
         }
 
         if (backupCount < 2)
         {
-            Logger.Log("need at least 2 backups to diff");
+            Logger.Colorize("need at least 2 backups to diff", ConsoleColor.Red);
             return true;
         }
 
@@ -69,13 +69,13 @@ public class Difference_Command : ICommand
 
         if (previous is null)
         {
-            Logger.Log($"backup not found: {args[0]}");
+            Logger.Colorize($"backup not found: {args[0]}", ConsoleColor.Red);
             return true;
         }
 
         if (current is null)
         {
-            Logger.Log($"backup not found: {args[1]}");
+            Logger.Colorize($"backup not found: {args[1]}", ConsoleColor.Red);
             return true;
         }
 

@@ -1,8 +1,8 @@
-using System.Text;
 using Backup.Components;
 using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 using Backup.ObjectDatabase;
+using Backup.Components.Differences;
 
 namespace Backup.Commands;
 
@@ -17,7 +17,7 @@ public class List_Command : ICommand
 
             if (!BackupDatabase.TryGetBackup(backupName, out BackupEntry? backup))
             {
-                Logger.Log($"couldn't find backup '{backupName}'");
+                Logger.Colorize($"couldn't find backup '{backupName}'", ConsoleColor.Red);
                 return true;
             }
 
@@ -28,31 +28,40 @@ public class List_Command : ICommand
             if (argSet.HasFlag("l"))
                 PrintAll(backup);
             else
-                Logger.Log(backup.Name);
+                Logger.Colorize(backup.Name, ConsoleColor.Blue);
 
         return true;
     }
 
     private static void PrintAll(BackupEntry backup, bool showDiff = false)
     {
-        StringBuilder output = new();
+        List<string> output = [];
 
-        output.AppendLine(new string('-', 80));
+        output.Add(new string('-', 80));
 
         string creationTimeString = backup.GetCreationTimeString();
-        output.Append(creationTimeString.PadRight(48));
-
-        output.Append(backup.Name);
+        output.Add($"{creationTimeString,-48}{backup.Name}");
 
         if (showDiff)
         {
-            output.AppendLine();
-            output.AppendLine(new string('-', 80));
+            output.Add(new string('-', 80));
 
-            output.AppendLine(backup.GetDiffString());
+            output.Add(backup.GetDiffString());
         }
 
-        Logger.Log(output.ToString());
+        Logger.Colorize(output, ColorMap);
+    }
+
+    private static ConsoleColor? ColorMap(string line)
+    {
+        if (line.StartsWith("--"))
+            return ConsoleColor.DarkBlue;
+
+        ConsoleColor? output = FileDifferenceGenerator.ColorMap(line);
+        if (output is not null)
+            return output;
+
+        return ConsoleColor.Cyan;
     }
 
     public CommandSyntax GetSyntax(CommandSyntax syntax) => syntax

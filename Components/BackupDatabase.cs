@@ -131,7 +131,7 @@ public static class BackupDatabase
         if (!TryGetBackup(backupName, out BackupEntry? backup))
             return false;
 
-        Logger.Log("preparing restore...");
+        Logger.Colorize("preparing restore...", ConsoleColor.Magenta);
 
         CleanupHandler.BeginSkip();
 
@@ -145,7 +145,7 @@ public static class BackupDatabase
         if (changesSinceBackup.Count == 0)
         {
             Delete(latestState, true);
-            Logger.Log("no changes to restore.");
+            Logger.Colorize("no changes to restore.", ConsoleColor.Cyan);
 
             CleanupHandler.EndSkip();
             return true;
@@ -207,7 +207,7 @@ public static class BackupDatabase
         if (backup.References.Count == 0)
             return backup;
 
-        Logger.Log("finalizing...");
+        Logger.Colorize("finalizing...", ConsoleColor.Magenta);
         TrackBackup(backup);
         Database.WriteBackup(backup);
         return backup;

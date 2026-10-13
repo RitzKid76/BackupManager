@@ -102,7 +102,7 @@ public static class Database
 
         if (hash is null)
         {
-            Logger.Log($"X  failed: {file.FullName}");
+            Logger.Colorize($"X  failed: {file.FullName}", ConsoleColor.DarkRed);
             return null;
         }
 
@@ -128,7 +128,7 @@ public static class Database
         Hash? hash = Hash.Create(file);
         if (hash is null)
         {
-            Logger.Log($"X  failed: {file.FullName}");
+            Logger.Colorize($"X  failed: {file.FullName}", ConsoleColor.DarkRed);
             return null;
         }
 

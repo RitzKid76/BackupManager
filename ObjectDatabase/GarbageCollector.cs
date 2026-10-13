@@ -1,4 +1,3 @@
-using System.Text;
 using Backup.Components;
 using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.Metadatas;
@@ -112,12 +111,20 @@ public static class GarbageCollector
 
     private static void LogMissing()
     {
-        StringBuilder builder = new();
-        builder.AppendLine("================================ MISSING REFERENCES DETECTED ================================");
+        List<string> output = [];
+        output.Add("================================ MISSING REFERENCES DETECTED ================================");
 
         foreach (ObjectReference reference in missing)
-            builder.AppendLine($"{reference.Pointer} {reference.FullName}");
+            output.Add($"{reference.Pointer} {reference.FullName}");
 
-        Logger.Log(builder.ToString());
+        Logger.Colorize(output, ColorMap);
+    }
+
+    private static ConsoleColor? ColorMap(string line)
+    {
+        if (line.StartsWith('='))
+            return ConsoleColor.DarkRed;
+
+        return ConsoleColor.Red;
     }
 }

@@ -91,7 +91,7 @@ public static class Compressor
             if (timePassed < bucketTime)
                 continue;
 
-            Logger.InfoColorize($"{bucketTimes[i].Item2} -> {backup.Name}", ConsoleColor.Blue);
+            Logger.InfoColorize($"{bucketTimes[i].Item2} -> {backup.Name}", ConsoleColor.Cyan);
             buckets.GetValueOrAdd(bucketTime, () => []).Add(backup.Name);
 
             return;

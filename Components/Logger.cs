@@ -25,7 +25,7 @@ public static class Logger
     public static void Log(object input) =>
         Console.WriteLine(input);
 
-    public static void Colorize(string input, ConsoleColor color)
+    public static void Colorize(object input, ConsoleColor color)
     {
         Console.ForegroundColor = color;
         Console.WriteLine(input);

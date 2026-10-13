@@ -14,7 +14,7 @@ public class Delete_Command : ICommand
         if (argSet.HasFlag("wipe-all"))
         {
             if (!BackupDatabase.Wipe(force))
-                Logger.Log("failed to finish wiping backups");
+                Logger.Colorize("failed to finish wiping backups", ConsoleColor.DarkRed);
 
             return true;
         }
@@ -25,7 +25,7 @@ public class Delete_Command : ICommand
         string backupName = args[0];
 
         if (!BackupDatabase.Delete(backupName, force))
-            Logger.Log($"couldn't find backup '{backupName}'");
+            Logger.Colorize($"couldn't find backup '{backupName}'", ConsoleColor.Red);
 
         return true;
     }

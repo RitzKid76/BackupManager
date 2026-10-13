@@ -61,19 +61,19 @@ public static class CommandExecutor
         catch (Exception e)
             when (e.GetBaseException() is DefaultStartupException)
         {
-            Logger.Log("""
+            Logger.Colorize("""
             it was detected that this is the first time you have run the app, or your configuration files were missing
             new config files have been generated for you
             
             be sure to update your configs and check out the README.md for more information
             restart the app to acknowledge
-            """);
+            """, ConsoleColor.DarkRed);
             return;
         }
         catch (Exception e)
         {
             string exception = PrettyStacktrace.Get(e);
-            Logger.Log(exception);
+            Logger.Colorize(exception, ConsoleColor.DarkRed);
         }
 
         Logger.DisableInfo();

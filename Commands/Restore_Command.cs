@@ -16,7 +16,7 @@ public class Restore_Command : ICommand
         args.RemoveAt(0);
 
         if (!BackupDatabase.Restore(backupName, args))
-            Logger.Log($"couldn't find backup '{backupName}'");
+            Logger.Colorize($"couldn't find backup '{backupName}'", ConsoleColor.Red);
 
         return true;
     }

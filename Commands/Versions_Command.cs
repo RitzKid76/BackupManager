@@ -21,14 +21,14 @@ public class Versions_Command : ICommand
         int versionCount = versions.Count;
         if (versionCount == 0)
         {
-            Logger.Log($"no versions found for path '{path}'");
+            Logger.Colorize($"no versions found for path '{path}'", ConsoleColor.Red);
             return true;
         }
 
-        Logger.Log($"found {versionCount} versions for path '{path}'");
+        Logger.Colorize($"found {versionCount} versions for path '{path}'", ConsoleColor.Blue);
 
         foreach (FileVersion version in versions)
-            Logger.Log(version);
+            Logger.Colorize(version, ConsoleColor.Cyan);
 
         return true;
     }
