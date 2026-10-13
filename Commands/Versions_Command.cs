@@ -10,7 +10,7 @@ public class Versions_Command : ICommand
 {
     public bool Execute(ArgumentSet argSet)
     {
-        if (argSet.HasArgs(out List<string> args))
+        if (!argSet.HasArgs(out List<string> args))
             return false;
 
         string path = args[0];
