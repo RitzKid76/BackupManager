@@ -1,6 +1,7 @@
 using Blake3;
 using System.Buffers;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Backup.ObjectDatabase.Hashing;
 
@@ -66,8 +67,16 @@ public class Hash : IEquatable<Hash>
         return new(hash);
     }
 
-    public static Hash Parse(string hashString) =>
-        new(hashString);
+    public static Hash Parse(string hashString)
+    {
+        if (!IsHash(hashString))
+            throw new InvalidHashFormatException(hashString);
+
+        return new(hashString);
+    }
+
+    public static bool IsHash(string hashString) =>
+        Regex.IsMatch(hashString, @"[0-9a-f]{40}");
 
     public bool Equals(Hash? other) =>
         other is not null &&

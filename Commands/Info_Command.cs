@@ -2,6 +2,7 @@ using Backup.Commands.Arguments;
 using Backup.Commands.Core;
 using Backup.Components;
 using Backup.ObjectDatabase;
+using Backup.ObjectDatabase.Hashing;
 using Backup.ObjectDatabase.ObjectTypes;
 
 namespace Backup.Commands;
@@ -15,6 +16,11 @@ public class Info_Command : ICommand
             return false;
 
         string pointer = args[0];
+        if (!Hash.IsHash(pointer))
+        {
+            Logger.Colorize($"the pointer '{pointer}' is not valid", ConsoleColor.Red);
+            return true;
+        }
 
         if (Database.TryReadUnknownTree(pointer, out Tree? tree))
         {
