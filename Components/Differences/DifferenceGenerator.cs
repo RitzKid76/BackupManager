@@ -162,11 +162,11 @@ public static class DifferenceGenerator
 
     private static bool MatchesPath(string path, string pattern)
     {
-        path = path.Replace('/', '\\');
-        pattern = pattern.Replace('/', '\\');
+        path = path.Replace('/', '\\').ToLower();
+        pattern = pattern.Replace('/', '\\').ToLower();
 
         if (Glob.IsGlob(pattern))
-            return Glob.Matches(path, pattern);
+            return Glob.Matches(path, pattern, true);
 
         string fileName = Path.GetFileName(path);
 

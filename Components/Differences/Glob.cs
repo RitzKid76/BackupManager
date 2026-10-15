@@ -1,13 +1,25 @@
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace Backup.Components.Differences;
 
 public static class Glob
 {
-    public static bool Matches(string input, string glob)
+    public static bool Matches(string input, string glob, bool lose = false)
     {
         input = Normalize(input);
         glob = Normalize(glob);
+
+        if (lose)
+        {
+            string regex = Regex.Escape(glob)
+                .Replace("\\*", ".*")
+                .Replace("\\?", ".");
+
+            regex = $"^{regex}$";
+
+            return Regex.IsMatch(input, regex, RegexOptions.IgnoreCase);
+        }
 
         string? directory = Path.GetDirectoryName(input);
         if (string.IsNullOrEmpty(directory))
